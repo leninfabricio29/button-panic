@@ -1,71 +1,63 @@
+🚨 SafeGuard
+SafeGuard es una aplicación móvil de botón de pánico desarrollada con React Native y Expo.
+Permite emitir alertas de emergencia de manera rápida y confiable, interactuando con la API principal:
 
-SafeGuard 🚨
-SafeGuard es una aplicación móvil de botón de pánico desarrollada con React Native y Expo. Permite emitir alertas de emergencia de manera rápida y confiable, interactuando con la API principal alojada en:
+🌐 BaseURL: https://softkilla.es/api/
 
-BaseURL: https://softkilla.es/api/
+🛠 Tecnologías
+⚛️ React Native (Expo SDK)
 
-Tecnologías
-React Native (Expo SDK)
+🟢 Node.js v20.9.0
 
-Node.js v20.9.0
+☕ Java 17
 
-Java 17
+🧭 Expo Router (navegación)
 
-Expo Router (navegación)
+🤖 Android Capacities (paquete: com.leninyanangomez.buttonpanic)
 
-Capacidades nativas Android (paquete: com.leninyanangomez.buttonpanic)
-
-Requisitos
+⚙️ Requisitos
 Node.js v20.9.0
 
 Java 17
 
 Expo CLI instalado globalmente:
 
-bash
-Copiar
-Editar
-npm install -g expo-cli
-Dispositivo Android o emulador configurado.
+![alt text](image.png)
 
-Instalación
-Clona el repositorio y configura las dependencias:
+📱 Dispositivo Android físico o emulador configurado.
 
-bash
-Copiar
-Editar
-git clone git@github.com:leninfabricio29/button-panic.git
-cd button-panic
-npm install
-Inicia el proyecto:
+🚀 Instalación
+Clona el repositorio:
 
-bash
-Copiar
-Editar
-npx expo start
-Para correrlo directamente en Android:
+![alt text](image-1.png)
+Accede al proyecto:
 
-bash
-Copiar
-Editar
-npx expo run:android
-Estructura del Proyecto
-El código está organizado por servicios que consumen las APIs externas.
+![alt text](image-3.png)
+Instala las dependencias:
 
-Cada servicio gestiona la comunicación y el procesamiento de datos específico.
+![alt text](image-2.png)
+Inicia el servidor de desarrollo:
 
-Configuración adicional
-La aplicación utiliza Expo SDK y está configurada para Android con las siguientes características relevantes:
+![alt text](image-4.png)
+(Opcional) Ejecuta en un dispositivo Android:
 
-Slug: button-panic
+![alt text](image-5.png)
+🧩 Estructura del Proyecto
+El proyecto está dividido en servicios que se encargan de consumir las distintas APIs.
 
-Versión: 1.0.0
+Cada servicio maneja su propia comunicación y procesamiento de datos.
 
-Paquete Android: com.leninyanangomez.buttonpanic
+🔧 Configuración adicional
 
-Iconos adaptativos personalizados
+Configuración	Valor
+Slug	button-panic
+Versión	1.0.0
+Paquete Android	com.leninyanangomez.buttonpanic
+Iconos	Iconos adaptativos personalizados
+📋 Notas importantes
+Asegúrate de tener configurado el entorno de Android (Android Studio o dispositivo real).
 
-Notas
-Asegúrate de tener el entorno de Android correctamente configurado (Android Studio o dispositivo físico).
+La comunicación API es directa sobre protocolo HTTPS.
 
-La comunicación con la API es directa a través de HTTPS.
+📄 Licencia
+Este proyecto está licenciado bajo MIT License.
