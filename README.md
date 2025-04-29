@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SafeGuard 🚨
+SafeGuard es una aplicación móvil de botón de pánico desarrollada con React Native y Expo. Permite emitir alertas de emergencia de manera rápida y confiable, interactuando con la API principal alojada en:
 
-## Get started
+BaseURL: https://softkilla.es/api/
 
-1. Install dependencies
+Tecnologías
+React Native (Expo SDK)
 
-   ```bash
-   npm install
-   ```
+Node.js v20.9.0
 
-2. Start the app
+Java 17
 
-   ```bash
-    npx expo start
-   ```
+Expo Router (navegación)
 
-In the output, you'll find options to open the app in a
+Capacidades nativas Android (paquete: com.leninyanangomez.buttonpanic)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Requisitos
+Node.js v20.9.0
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Java 17
 
-## Get a fresh project
+Expo CLI instalado globalmente:
 
-When you're ready, run:
+bash
+Copiar
+Editar
+npm install -g expo-cli
+Dispositivo Android o emulador configurado.
 
-```bash
-npm run reset-project
-```
+Instalación
+Clona el repositorio y configura las dependencias:
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+bash
+Copiar
+Editar
+git clone git@github.com:leninfabricio29/button-panic.git
+cd button-panic
+npm install
+Inicia el proyecto:
 
-## Learn more
+bash
+Copiar
+Editar
+npx expo start
+Para correrlo directamente en Android:
 
-To learn more about developing your project with Expo, look at the following resources:
+bash
+Copiar
+Editar
+npx expo run:android
+Estructura del Proyecto
+El código está organizado por servicios que consumen las APIs externas.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Cada servicio gestiona la comunicación y el procesamiento de datos específico.
 
-## Join the community
+Configuración adicional
+La aplicación utiliza Expo SDK y está configurada para Android con las siguientes características relevantes:
 
-Join our community of developers creating universal apps.
+Slug: button-panic
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Versión: 1.0.0
+
+Paquete Android: com.leninyanangomez.buttonpanic
+
+Iconos adaptativos personalizados
+
+Notas
+Asegúrate de tener el entorno de Android correctamente configurado (Android Studio o dispositivo físico).
+
+La comunicación con la API es directa a través de HTTPS.
