@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: '#e1f5fe', // Light blue background
+    //backgroundColor: '#fcff7d',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20, // Increased margin
@@ -324,6 +325,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderLeftWidth: 4,
     borderLeftColor: '#3498db', // Blue border
+    //borderLeftColor: '#f9ff0e'
   },
   infoText: {
     marginLeft: 10,
