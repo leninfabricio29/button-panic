@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#6c757d', // Greyish color
+    color: '#01579b', // Greyish color
     marginBottom: 5,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

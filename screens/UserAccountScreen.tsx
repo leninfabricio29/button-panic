@@ -30,17 +30,17 @@ export default function UserAccountScreen() {
 
         <View style={styles.optionsList}>
           <TouchableOpacity style={styles.option} onPress={() => Alert.alert('Editar perfil')}>
-            <Ionicons name="create-outline" size={22} color="#5c4033" />
+            <Ionicons name="create-outline" size={22} color="#2980b9" />
             <Text style={styles.optionText}>Editar perfil</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.option} onPress={() => Alert.alert('Ver historial de actividad')}>
-            <Ionicons name="time-outline" size={22} color="#5c4033" />
+            <Ionicons name="time-outline" size={22} color="#2980b9" />
             <Text style={styles.optionText}>Historial de actividad</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.option} onPress={() => Alert.alert('Cerrar sesión')}>
-            <Ionicons name="log-out-outline" size={22} color="#5c4033" />
+            <Ionicons name="log-out-outline" size={22} color="#2980b9" />
             <Text style={styles.optionText}>Cerrar sesión</Text>
           </TouchableOpacity>
         </View>
@@ -52,7 +52,7 @@ export default function UserAccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fffaf0',
+    backgroundColor: '#fff',
   },
   content: {
     padding: 20,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#2e1f0f',
+    color: '#2980b9',
   },
   userEmail: {
     fontSize: 14,
@@ -78,14 +78,14 @@ const styles = StyleSheet.create({
   },
   optionsList: {
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#e1f5fe',
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e1f5fe',
   },
   optionText: {
     fontSize: 16,

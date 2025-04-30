@@ -116,26 +116,31 @@ const NotificationsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fffaf0' },
+  container: { flex: 1, backgroundColor: '#fff' },
   filters: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 10,
+
   },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: '#fdf5e6',
+    backgroundColor: '#fff',
     marginRight: 8,
     borderWidth: 1,
     borderColor: '#ccc',
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
   },
   chipSelected: {
-    backgroundColor: '#ff6b6b',
-    borderColor: '#ff6b6b',
+    backgroundColor: '#01579b',
+    borderColor: '#01579b',
   },
   chipText: {
     color: '#5c4033',
@@ -151,16 +156,20 @@ const styles = StyleSheet.create({
   notificationItem: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#fdf5e6',
+    backgroundColor: '#fff',
     borderRadius: 10,
     marginBottom: 10,
     alignItems: 'center',
     borderLeftWidth: 5,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
   },
   title: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#2e1f0f',
+    color: '#2980b9',
   },
   message: {
     color: '#5c4033',

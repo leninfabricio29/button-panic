@@ -34,7 +34,7 @@ export default function FAQScreen() {
         {faqs.map((item, index) => (
           <View key={index} style={styles.faqItem}>
             <View style={styles.faqHeader}>
-              <Ionicons name="help-circle-outline" size={22} color="#5c4033" style={styles.icon} />
+              <Ionicons name="help-circle-outline" size={22} color="#2980b9" style={styles.icon} />
               <Text style={styles.question}>{item.question}</Text>
             </View>
             <Text style={styles.answer}>{item.answer}</Text>
@@ -48,7 +48,7 @@ export default function FAQScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fffaf0',
+    backgroundColor: '#fff',
   },
   content: {
     padding: 20,
@@ -56,10 +56,14 @@ const styles = StyleSheet.create({
   faqItem: {
     marginBottom: 20,
     padding: 16,
-    backgroundColor: '#fdf5e6',
+    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#e1f5fe',
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
   },
   faqHeader: {
     flexDirection: 'row',
@@ -68,11 +72,12 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
+    
   },
   question: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2e1f0f',
+    color: '#2980b9',
   },
   answer: {
     fontSize: 14,

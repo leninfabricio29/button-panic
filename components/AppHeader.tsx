@@ -41,7 +41,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
       {rightIcon ? (
         <TouchableOpacity onPress={onRightPress}>
-          <Ionicons name={rightIcon} size={24} color={iconColor} />
+          <Ionicons name={rightIcon} size={24} color={iconColor}  />
         </TouchableOpacity>
       ) : (
         <View style={{ width: 24 }} />
@@ -61,12 +61,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    //marginBottom: 12,
     elevation: 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#138d75',
+    
   },
   title: {
+    flexDirection: 'row',
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 12,
+    justifyContent: 'center'
   },
 });
