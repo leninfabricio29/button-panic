@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { notifyService } from '@/app/src/api/services/notification-service';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -23,22 +24,30 @@ export default function ForgotPasswordScreen() {
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (!accepted) {
       Alert.alert('Atención', 'Debes aceptar las condiciones antes de continuar');
       return;
     }
-    
-    setLoading(true);
-    
-    // Simulación de carga
-    setTimeout(() => {
+  
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Ingresa un correo válido.');
+      return;
+    }
+  
+    try {
+      setLoading(true);
+      await notifyService.sendPetitioPassword(email);
       Alert.alert('Solicitud enviada', 'Un administrador se pondrá en contacto contigo.');
+      setEmail('');
+      setAccepted(false);
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema al enviar tu solicitud.');
+    } finally {
       setLoading(false);
-    }, 1500);
-    
-    // Aquí iría la llamada a la API
+    }
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
