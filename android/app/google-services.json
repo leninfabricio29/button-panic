@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "432964319007",
+    "project_id": "pannicalert",
+    "storage_bucket": "pannicalert.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432964319007:android:3800d034ce6d2598b7622a",
+        "android_client_info": {
+          "package_name": "com.lenfabricio7.botonpanicoapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBACEL_HHECfAIlwx7ckDzo5VuQQzajSm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432964319007:android:20ba28ed9c6225fbb7622a",
+        "android_client_info": {
+          "package_name": "com.leninyanangomez.buttonpanic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBACEL_HHECfAIlwx7ckDzo5VuQQzajSm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,6 +1,3 @@
-// app/index.tsx o app/home/index.tsx (según sea tu estructura)
-
-import React from 'react';
 import {
   View,
   Text,

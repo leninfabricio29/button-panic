@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useRouter, useSegments } from "expo-router";
 import { AuthProvider, useAuth } from "../app/context/AuthContext";
+//import '../utils/firebase-config'
+import messaging from "@react-native-firebase/messaging";
 
 function RootNavigation() {
   const { isAuthenticated } = useAuth();
@@ -31,6 +33,16 @@ function RootNavigation() {
 }
 
 export default function Layout() {
+  useEffect(() => {
+    // Puedes manejar mensajes en primer plano si quieres aquí
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log("Mensaje recibido en foreground:", remoteMessage);
+      // Puedes mostrar una alerta, navegación o lógica aquí
+    });
+
+    return unsubscribe;
+  }, []);
+
   return (
     <AuthProvider>
       <RootNavigation />

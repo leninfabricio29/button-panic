@@ -1,6 +1,4 @@
-// app/auth/login.tsx
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -54,6 +52,8 @@ export default function LoginScreen() {
         }
         
         // Actualizar el contexto de autenticación
+
+        //await registerForPushNotificationsAsync();
         await login();
   
         router.replace('/');
