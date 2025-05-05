@@ -18,4 +18,8 @@ export const authService = {
   register: (data: { ci: string; name: string; phone: string; email: string }) => {
     return api.post('/users/register', data);
   },
+
+  updatePassword: (data: { email: string; currentPassword: string; newPassword: string }) => {
+    return api.put('/auth/update-password', data);
+  }
 };

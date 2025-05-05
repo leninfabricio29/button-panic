@@ -1,6 +1,15 @@
-// components/AppHeader.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, StatusBar, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
+  ViewStyle,
+  TextStyle,
+  SafeAreaView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -26,27 +35,34 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const navigation = useNavigation();
 
   return (
-    <View style={[styles.header, style]}>
-      <StatusBar barStyle="light-content"  />
-      
-      {showBack ? (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={iconColor} />
-        </TouchableOpacity>
-      ) : (
-        <View style={{ width: 24 }} />
-      )}
+    <SafeAreaView >
+      <View style={[styles.header, style]}>
+        <StatusBar barStyle="light-content"  />
 
-      <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
+        {/* Back Button or spacer */}
+        {showBack ? (
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={iconColor} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.iconSpacer} />
+        )}
 
-      {rightIcon ? (
-        <TouchableOpacity onPress={onRightPress}>
-          <Ionicons name={rightIcon} size={24} color={iconColor}  />
-        </TouchableOpacity>
-      ) : (
-        <View style={{ width: 24 }} />
-      )}
-    </View>
+        {/* Title */}
+        <Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
+          {title}
+        </Text>
+
+        {/* Right Icon or spacer */}
+        {rightIcon ? (
+          <TouchableOpacity onPress={onRightPress}>
+            <Ionicons name={rightIcon} size={24} color={iconColor} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.iconSpacer} />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -54,24 +70,23 @@ export default AppHeader;
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 44,
-    height: Platform.OS === 'android' ? 30 + (StatusBar.currentHeight || 0) : 88,
+    paddingBottom: 12,
     backgroundColor: '#01579b',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    //marginBottom: 12,
     elevation: 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#138d75',
-    
   },
   title: {
-    flexDirection: 'row',
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
-    justifyContent: 'center'
+    textAlign: 'center',
+  },
+  iconSpacer: {
+    width: 32, // igual al tamaño de un ícono para centrar
   },
 });

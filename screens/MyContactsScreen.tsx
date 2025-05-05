@@ -9,7 +9,8 @@ import {
   Modal,
   TouchableOpacity,
   Animated,
-  Linking
+  Linking,
+  Alert
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,15 @@ interface Contact {
   contactUserId: string;
 }
 
-const ContactCard = ({ contact, onViewDetails }: { contact: Contact; onViewDetails: (id: string) => void }) => (
+const ContactCard = ({ 
+  contact, 
+  onViewDetails, 
+  onDeleteContact 
+}: { 
+  contact: Contact; 
+  onViewDetails: (id: string) => void;
+  onDeleteContact: (id: string, name: string) => void;
+}) => (
   <View style={styles.card}>
     <View style={styles.cardHeader}>
       <View style={styles.avatar}>
@@ -42,7 +51,7 @@ const ContactCard = ({ contact, onViewDetails }: { contact: Contact; onViewDetai
           <Ionicons name="eye-outline" size={16} color="#007AFF" /> Ver detalles
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => onDeleteContact(contact._id, contact.alias || contact.name)}>
         <Text style={[styles.actionText, { color: '#E53935' }]}>
           <Ionicons name="trash-outline" size={16} color="#E53935" /> Eliminar
         </Text>
@@ -57,6 +66,7 @@ export default function MyContactsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [contactDetails, setContactDetails] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(100)).current;
 
@@ -93,6 +103,49 @@ export default function MyContactsScreen() {
       setDetailsLoading(false);
     }
   }, []);
+
+  const handleDeleteContact = useCallback(async (contactId: string, contactName: string) => {
+    // Mostrar alerta de confirmación antes de eliminar
+    Alert.alert(
+      "Eliminar contacto",
+      `¿Estás seguro que deseas eliminar a ${contactName} de tus contactos?`,
+      [
+        { 
+          text: "Cancelar", 
+          style: "cancel" 
+        },
+        { 
+          text: "Eliminar", 
+          style: "destructive", 
+          onPress: async () => {
+            try {
+              setDeleteLoading(true);
+              
+              // Llamar al servicio para eliminar el contacto
+              await contactsService.deleteContact(contactId);
+              
+              // Actualizar la lista de contactos
+              await fetchContacts();
+              
+              // Mostrar confirmación
+              Alert.alert(
+                "Contacto eliminado", 
+                `${contactName} ha sido eliminado de tus contactos`
+              );
+            } catch (error) {
+              console.error('Error eliminando contacto:', error);
+              Alert.alert(
+                "Error", 
+                "No se pudo eliminar el contacto. Inténtalo de nuevo más tarde."
+              );
+            } finally {
+              setDeleteLoading(false);
+            }
+          } 
+        }
+      ]
+    );
+  }, [fetchContacts]);
 
   useEffect(() => {
     fetchContacts();
@@ -135,16 +188,24 @@ export default function MyContactsScreen() {
         </View>
       </View>
 
-      {loading ? (
+      {loading || deleteLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4A90E2" />
-          <Text style={styles.loadingText}>Cargando contactos...</Text>
+          <Text style={styles.loadingText}>
+            {deleteLoading ? 'Eliminando contacto...' : 'Cargando contactos...'}
+          </Text>
         </View>
       ) : (
         <FlatList
           data={contacts}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => <ContactCard contact={item} onViewDetails={handleViewDetails} />}
+          renderItem={({ item }) => (
+            <ContactCard 
+              contact={item} 
+              onViewDetails={handleViewDetails} 
+              onDeleteContact={handleDeleteContact}
+            />
+          )}
           contentContainerStyle={styles.contactsList}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -183,9 +244,7 @@ export default function MyContactsScreen() {
                   </TouchableOpacity>
                 </View>
                 {contactDetails ? (
-
                   <View style={styles.modalDetails}>
-                    
                     <View style={styles.infoContainer}>
                       <Text style={styles.label}>Nombre:</Text>
                       <Text style={styles.value}>{contactDetails.name}</Text>
@@ -211,15 +270,12 @@ export default function MyContactsScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                  
-                  
                 ) : (
                   <View style={styles.errorContainer}>
                     <Ionicons name="warning-outline" size={24} color="#E53935" />
                     <Text style={styles.errorText}>No se pudo cargar la información.</Text>
                   </View>
                 )}
-               
               </>
             )}
           </Animated.View>
@@ -229,6 +285,7 @@ export default function MyContactsScreen() {
   );
 }
 
+// Los estilos se mantienen igual
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -368,7 +425,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
- 
   infoContainer: {
     width: '100%',
   },
@@ -394,8 +450,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '600',
   },
-  
-  
   errorContainer: {
     alignItems: 'center',
     marginBottom: 20,

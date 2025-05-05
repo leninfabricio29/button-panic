@@ -192,11 +192,12 @@ const UsersListScreen = () => {
                     <Text style={styles.userDetail}>{item.phone}</Text>
                   </View>
                   <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => openAddContactModal(item._id)}
-                  >
-                    <Ionicons name="person-add" size={24} color="#fff" />
-                  </TouchableOpacity>
+  style={styles.addButton}
+  onPress={() => openAddContactModal(item._id)}
+>
+<Ionicons name="person-add-outline" size={20} color="blue" />
+</TouchableOpacity>
+
                 </View>
               )}
               ListEmptyComponent={() => (
@@ -297,11 +298,16 @@ const styles = StyleSheet.create({
     color: "#5c4033",
   },
   addButton: {
-    backgroundColor: "#01579b",
+    backgroundColor: "white",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
-  },
+    borderRadius: 999, // completamente redondeado como un pill
+    borderWidth: 2,
+    borderColor: "blue",
+    alignItems: "center",
+    justifyContent: "center",
+  }
+,  
   addButtonLabel: {
     color: "#fff",
     fontSize: 14,

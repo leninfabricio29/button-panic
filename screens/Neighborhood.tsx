@@ -10,29 +10,31 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  ImageBackground,
   SafeAreaView,
   Dimensions,
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../app/context/AuthContext'; // Make sure to adjust this path
+
 import { neighborhoodService } from '../app/src/api/services/neighborhood-service';
 
 const { width } = Dimensions.get('window');
 
 // Imágenes de barrios para mostrar variedad
 const neighborhoodImages = [
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg',
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg',
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg',
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg',
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg',
+  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg'
 
 ];
 
 export default function NeighborhoodScreen() {
   const [loading, setLoading] = useState(true);
   const [neighborhoods, setNeighborhoods] = useState([]);
+  const [sendingRequest, setSendingRequest] = useState(false);
+
+
+  const { user } = useAuth();
+
 
   useEffect(() => {
     const fetchNeighborhoods = async () => {
@@ -58,7 +60,7 @@ export default function NeighborhoodScreen() {
     fetchNeighborhoods();
   }, []);
 
-  const handleJoinNeighborhood = (item) => {
+  const handleJoinNeighborhood = async (item) => {
     Alert.alert(
       'Confirmar solicitud',
       `¿Deseas enviar una solicitud para unirte a ${item.name}?`,
@@ -66,9 +68,26 @@ export default function NeighborhoodScreen() {
         { text: 'Cancelar', style: 'cancel' },
         { 
           text: 'Solicitar', 
-          onPress: () => {
-            // Aquí se implementaría la lógica para enviar la solicitud
-            Alert.alert('Solicitud enviada', `Tu solicitud para unirte a ${item.name} ha sido enviada. Un administrador la revisará pronto.`);
+          onPress: async () => {
+            try {
+              setSendingRequest(true);
+              
+              // Call the petition endpoint
+              await neighborhoodService.sendPetitionNeighborhood(item._id, user._id);
+              
+              Alert.alert(
+                'Solicitud enviada', 
+                `Tu solicitud para unirte a ${item.name} ha sido enviada. Un administrador la revisará pronto.`
+              );
+            } catch (error) {
+              console.error('Error al enviar solicitud:', error);
+              Alert.alert(
+                'Error', 
+                'No se pudo enviar la solicitud. Inténtalo de nuevo más tarde.'
+              );
+            } finally {
+              setSendingRequest(false);
+            }
           }
         }
       ]
@@ -93,7 +112,7 @@ export default function NeighborhoodScreen() {
     </View>
   );
 
-  const renderNeighborhoodCard = ({ item, index }) => (
+  const renderNeighborhoodCard = ({ item }) => (
     <View style={styles.card}>
       <Image 
         source={{ uri: item.imageUrl }}
