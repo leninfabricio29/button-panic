@@ -146,80 +146,81 @@ const UsersListScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View style={styles.container}>
-            <AppHeader title="Usuarios Disponibles" />
+        {/* <TouchableWithoutFeedback onPress={dismissKeyboard}> */}
+        <View style={styles.container}>
+          <AppHeader title="Usuarios Disponibles" />
 
-            <View style={styles.searchContainer}>
-              <Ionicons
-                name="search"
-                size={20}
-                color={isFocused ? "#007AFF" : "#aaa"}
-              />
-              <TextInput
-                placeholder="Buscar por nombre o teléfono"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                //style={styles.searchInput}
-                placeholderTextColor="#aaa"
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                style={[
-                  styles.searchInput,
-                  isFocused && styles.searchInputFocused,
-                ]}
-              />
-            </View>
-
-            <FlatList
-              data={visibleUsers}
-              keyExtractor={(item) => item._id}
-              contentContainerStyle={styles.usersList}
-              renderItem={({ item, index }) => (
-                <View style={styles.userItemContainer}>
-                  <View
-                    style={[
-                      styles.avatar,
-                      { backgroundColor: getAvatarColor(item._id) },
-                    ]}
-                  >
-                    <Text style={styles.avatarText}>
-                      {getInitials(item.name)}
-                    </Text>
-                  </View>
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.name}</Text>
-                    <Text style={styles.userDetail}>{item.phone}</Text>
-                  </View>
-                  <TouchableOpacity
-  style={styles.addButton}
-  onPress={() => openAddContactModal(item._id)}
->
-<Ionicons name="person-add-outline" size={20} color="blue" />
-</TouchableOpacity>
-
-                </View>
-              )}
-              ListEmptyComponent={() => (
-                <View style={styles.emptyResults}>
-                  <Text style={styles.emptyResultsText}>No hay usuarios</Text>
-                </View>
-              )}
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.5}
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color={isFocused ? "#007AFF" : "#aaa"}
             />
-
-            <AddContactModal
-              visible={modalVisible}
-              onClose={closeAddContactModal}
-              contactUserId={selectedUserId} // 👈 aquí
-              onSuccess={() => {
-                // Opcional: refrescar usuarios, resetear, etc
-                console.log("Contacto añadido correctamente");
-              }}
+            <TextInput
+              placeholder="Buscar..."
+              value={searchQuery}
+              onChangeText={handleSearch}
+              style={[
+                styles.searchInput,
+                isFocused && styles.searchInputFocused,
+              ]}
+              placeholderTextColor="#999"
+              cursorColor="#007AFF"
+              selectionColor="#007AFF20"
+              // Añade estos props para Android:
+              includeFontPadding={false} // 🔥 Elimina padding extra en Android
+              textAlignVertical="center" // 🔥 Alinea verticalmente
             />
           </View>
-        </TouchableWithoutFeedback>
+
+          <FlatList
+            data={visibleUsers}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.usersList}
+            renderItem={({ item, index }) => (
+              <View style={styles.userItemContainer}>
+                <View
+                  style={[
+                    styles.avatar,
+                    { backgroundColor: getAvatarColor(item._id) },
+                  ]}
+                >
+                  <Text style={styles.avatarText}>
+                    {getInitials(item.name)}
+                  </Text>
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{item.name}</Text>
+                  <Text style={styles.userDetail}>{item.phone}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => openAddContactModal(item._id)}
+                >
+                  <Ionicons name="person-add-outline" size={20} color="#01579b" />
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyResults}>
+                <Text style={styles.emptyResultsText}>No hay usuarios</Text>
+              </View>
+            )}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+          />
+
+          <AddContactModal
+            visible={modalVisible}
+            onClose={closeAddContactModal}
+            contactUserId={selectedUserId} // 👈 aquí
+            onSuccess={() => {
+              // Opcional: refrescar usuarios, resetear, etc
+              console.log("Contacto añadido correctamente");
+            }}
+          />
+        </View>
+        {/* </TouchableWithoutFeedback> */}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   usersList: {
-    paddingTop: 16,
+    /*  paddingTop: 16, */
     paddingBottom: 32,
   },
   searchContainer: {
@@ -250,8 +251,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   searchInput: {
+    flex: 1,
     fontSize: 16,
-    color: "#2e1f0f",
+    color: '#000',
+    marginLeft: 8,
+    padding: 0, // 🔥 Elimina padding interno
+    paddingTop: Platform.select({ android: 4, ios: 8 }), // 🔥 Ajuste específico
+    paddingBottom: Platform.select({ android: 4, ios: 8 }),
   },
   searchInputFocused: {
     borderColor: "#007AFF", // Color azul cuando está enfocado
@@ -303,11 +309,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999, // completamente redondeado como un pill
     borderWidth: 2,
-    borderColor: "blue",
+    borderColor: "#01579b",
     alignItems: "center",
     justifyContent: "center",
-  }
-,  
+  },
   addButtonLabel: {
     color: "#fff",
     fontSize: 14,

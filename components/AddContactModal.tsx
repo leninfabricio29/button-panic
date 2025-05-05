@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: '#fdf5e6',
+    backgroundColor: '#fff',
     color: '#333',
   },
   saveButton: {

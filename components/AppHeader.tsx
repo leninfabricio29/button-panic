@@ -70,7 +70,7 @@ export default AppHeader;
 
 const styles = StyleSheet.create({
   header: {
-    paddingBottom: 12,
+    padding: 12,
     backgroundColor: '#01579b',
     flexDirection: 'row',
     alignItems: 'center',
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginTop: 2
   },
   iconSpacer: {
     width: 32, // igual al tamaño de un ícono para centrar
