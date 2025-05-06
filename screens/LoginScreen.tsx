@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../app/src/api/services/auth-service';
 import { useAuth } from '../app/context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import PolicyModal from '@/components/PolicyModal';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -25,6 +26,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -137,13 +140,24 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
-              onPress={() => router.push('/auth/forgot-password')} 
-              style={styles.forgotPassword}
-              disabled={loading}
-            >
-              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
+            <View style={styles.linksRow}>
+  <TouchableOpacity 
+    onPress={() => router.push('/auth/forgot-password')} 
+    disabled={loading}
+  >
+    <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity 
+    onPress={() => setShowPolicyModal(true)} 
+    disabled={loading}
+    style={{ marginLeft: 15 }}
+  >
+    <Text style={styles.forgotPasswordText}>Ver políticas</Text>
+  </TouchableOpacity>
+</View>
+
+
 
             <TouchableOpacity 
               style={[styles.loginButton, loading && styles.disabledButton]} 
@@ -177,6 +191,10 @@ export default function LoginScreen() {
           <Text style={styles.creditsText}>Powered by SoftKilla.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
+      <PolicyModal 
+  visible={showPolicyModal} 
+  onAccept={() => setShowPolicyModal(false)} 
+/>
     </SafeAreaView>
   );
 }
@@ -308,5 +326,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 20,
     textAlign: "center"
-  }
+  },
+  linksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    marginTop: 4
+  },
+  
 });

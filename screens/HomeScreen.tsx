@@ -20,12 +20,15 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 
 const { width } = Dimensions.get("window");
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const [sosActive, setSosActive] = useState(false);
   const pulseAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+
   const resetTimer = useRef(null);
   const activeUsers = 52;
   const router = useRouter();
@@ -39,6 +42,14 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    const checkPolicyAgreement = async () => {
+      const accepted = await AsyncStorage.getItem('policyAccepted');
+      if (accepted !== 'true') {
+        setShowPolicyModal(true);
+      }
+    };
+    checkPolicyAgreement();
+
     return () => {
       if (resetTimer.current) {
         clearTimeout(resetTimer.current);
@@ -69,7 +80,7 @@ export default function HomeScreen() {
       // Configurar el temporizador para resetear después de 30 segundos
       resetTimer.current = setTimeout(() => {
         setSosActive(false);
-      }, 30000); // 30 segundos
+      }, 10000); // 30 segundos
     } else {
       pulseAnim.setValue(0);
       if (resetTimer.current) {
@@ -133,7 +144,7 @@ export default function HomeScreen() {
   });
 
   // Tiempo restante para el reset automático
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(10);
   
   useEffect(() => {
     let interval;
@@ -148,7 +159,7 @@ export default function HomeScreen() {
         });
       }, 1000);
     } else {
-      setTimeLeft(30);
+      setTimeLeft(10);
     }
     return () => clearInterval(interval);
   }, [sosActive]);
@@ -265,11 +276,11 @@ export default function HomeScreen() {
               onPress={() => router.push("/home/my-account")}
             >
               <View
-                style={[styles.quickOptionIcon, { backgroundColor: "#4CAF50" }]}
+                style={[styles.quickOptionIcon, { backgroundColor: "blue" }]}
               >
-                <Ionicons name="key-outline" size={24} color="white" />
+                <Ionicons name="radio-outline" size={24} color="white" />
               </View>
-              <Text style={styles.quickOptionText}>Mi cuenta</Text>
+              <Text style={styles.quickOptionText}>Mi Comunidad</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -351,6 +362,8 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+
     </SafeAreaView>
   );
 }
