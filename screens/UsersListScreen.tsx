@@ -177,12 +177,12 @@ const UsersListScreen = () => {
             openAddContactModal(userId);
           }
         }}
-        disabled={isDisabled}
+        disabled={isDisabled || contactExists}
       >
         <Ionicons
           name="person-add-outline"
           size={20}
-          color={isDisabled ? "#aaa" : "#01579b"}
+          color={isDisabled || contactExists ? "#aaa" : "#01579b"}
         />
       </TouchableOpacity>
     );
@@ -248,7 +248,7 @@ const UsersListScreen = () => {
                   onPress={() => {
                     Alert.alert(
                       "Límite de contactos",
-                      "Para agregar más contactos, por favor elimina uno existente o considera actualizar a la versión premium.",
+                      "Para agregar más contactos, por favor elimina uno existente.",
                       [{ text: "Entendido" }]
                     );
                   }}
@@ -298,11 +298,16 @@ const UsersListScreen = () => {
 
           <AddContactModal
             visible={modalVisible}
-            onClose={closeAddContactModal}
+            onClose={() => {
+              closeAddContactModal();
+              setSearchQuery("");
+            }}
             contactUserId={selectedUserId}
             onSuccess={async () => {
+              /* Alert.alert("Éxito", "Contacto actualizado correctamente"); */
               await fetchUserContacts();
-              Alert.alert("Éxito", "Contacto actualizado correctamente");
+              setSearchQuery("");
+              setSelectedUserId(null);
             }}
           />
         </View>
@@ -414,8 +419,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   limitContainer: {
-    marginVertical: 8,
-    marginHorizontal: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   limitBanner: {
     flexDirection: "row",

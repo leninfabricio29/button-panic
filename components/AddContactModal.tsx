@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   FlatList,
+  Alert,
 } from "react-native";
 import { contactsService } from "@/app/src/api/services/contact-service";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,7 +29,6 @@ export default function AddContactModal({
   onSuccess,
 }: AddContactModalProps) {
   const [alias, setAlias] = useState("");
-  const [relationship, setRelationship] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedRelationship, setSelectedRelationship] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -43,12 +43,25 @@ export default function AddContactModal({
     { label: "Pareja", value: "pareja" },
   ];
 
+  const validateFields = () => {
+    if (!alias.trim()) {
+      Alert.alert(
+        "Campo requerido",
+        "Por favor ingresa un alias para el contacto"
+      );
+      return false;
+    }
+
+    if (!selectedRelationship) {
+      Alert.alert("Campo requerido", "Por favor selecciona una relación");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
-    console.log({
-      alias,
-      relationship: selectedRelationship,
-      contactUser: contactUserId,
-    });
+    if (!validateFields()) return;
 
     setLoading(true);
     try {
@@ -58,14 +71,24 @@ export default function AddContactModal({
         contactUser: contactUserId,
       });
       alert("Contacto añadido con éxito");
-      onClose();
       onSuccess();
+      // Limpiar los campos después de un envío exitoso
+      setAlias("");
+      setSelectedRelationship("");
+      handleClose();
     } catch (error) {
       console.error("Error registrando contacto:", error);
       alert("Hubo un error, intenta más tarde.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClose = () => {
+    // Limpiar los campos cuando se cierre el modal
+    setAlias("");
+    setSelectedRelationship("");
+    onClose();
   };
 
   return (
@@ -183,7 +206,7 @@ export default function AddContactModal({
 
                   <TouchableOpacity
                     style={[styles.button, styles.cancelButton]}
-                    onPress={onClose}
+                    onPress={handleClose}
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.buttonText, styles.cancelButtonText]}>
