@@ -1,6 +1,4 @@
-// app/screens/UsersListScreen.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -13,13 +11,15 @@ import {
   Keyboard,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { usersService } from "../app/src/api/services/users-service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AddContactModal from "@/components/AddContactModal"; // Ajusta la ruta si es necesario
+import AddContactModal from "@/components/AddContactModal";
 import { Ionicons } from "@expo/vector-icons";
 import { contactsService } from "@/app/src/api/services/contact-service";
+import { useIsFocused } from "@react-navigation/native";
 
 interface User {
   _id: string;
@@ -27,9 +27,10 @@ interface User {
   phone: string;
 }
 
-const PAGE_SIZE = 20; // 👈 20 usuarios por página
+const PAGE_SIZE = 20;
 
 const UsersListScreen = () => {
+  const isFocused = useIsFocused();
   const [users, setUsers] = useState<User[]>([]);
   const [userContacts, setUserContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
@@ -38,11 +39,10 @@ const UsersListScreen = () => {
   const [visibleUsers, setVisibleUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isFocusedInput, setIsFocusedInput] = useState(false);
 
-  const [isFocused, setIsFocused] = useState(false);
   const avatarColors = [
     "#01579b",
     "#0288d1",
@@ -55,6 +55,55 @@ const UsersListScreen = () => {
     "#fb8c00",
     "#f4511e",
   ];
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const allUsers = await usersService.getAllUsers();
+        const loggedUserData = await AsyncStorage.getItem("user-data");
+        const loggedUser = loggedUserData ? JSON.parse(loggedUserData) : null;
+
+        const filtered = allUsers.filter(
+          (user) => user._id !== loggedUser?._id
+        );
+
+        setUsers(filtered);
+        setFilteredUsers(filtered);
+        setVisibleUsers(filtered.slice(0, PAGE_SIZE));
+        await fetchUserContacts();
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        Alert.alert("Error", "No se pudieron cargar los usuarios");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  // Recargar contactos cuando la pantalla recibe foco
+  useEffect(() => {
+    if (isFocused) {
+      fetchUserContacts();
+    }
+  }, [isFocused]);
+
+  const fetchUserContacts = async () => {
+    try {
+      setLoadingContacts(true);
+      const res = await contactsService.getContactsUser();
+      const myContacts = res.data || [];
+      setUserContacts(myContacts);
+    } catch (error) {
+      console.error("Error al obtener contactos:", error);
+      Alert.alert("Error", "No se pudieron cargar los contactos");
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
 
   const openAddContactModal = (userId: string) => {
     setSelectedUserId(userId);
@@ -73,60 +122,10 @@ const UsersListScreen = () => {
       : name[0].toUpperCase();
   };
 
-  const dismissKeyboard = () => Keyboard.dismiss();
-
-  // Función para seleccionar color basado en el índice o ID
-  const getAvatarColor = (id) => {
-    // Puedes usar el índice o hash del ID para seleccionar el color
-    const index = parseInt(id.slice(-2), 16) % avatarColors.length; // Convierte los últimos 2 caracteres del ID a número
+  const getAvatarColor = (id: string) => {
+    const index = parseInt(id.slice(-2), 16) % avatarColors.length;
     return avatarColors[index];
   };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const allUsers = await usersService.getAllUsers();
-
-        const loggedUserData = await AsyncStorage.getItem("user-data");
-        const loggedUser = loggedUserData ? JSON.parse(loggedUserData) : null;
-
-        // 🔥 Filtramos usuarios, excluyendo el logueado
-        const filtered = allUsers.filter(
-          (user) => user._id !== loggedUser?._id
-        );
-
-        setUserContacts(userContacts);
-
-        setUsers(filtered);
-        setFilteredUsers(filtered);
-        setVisibleUsers(filtered.slice(0, PAGE_SIZE));
-      } catch (error) {
-        console.error("Error cargando usuarios", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  const fetchUserContacts = async () => {
-    try {
-      const res = await contactsService.getContactsUser();
-      const myContacts = res.data || [];
-      setUserContacts(myContacts);
-    } catch (error) {
-      console.error("Error al obtener contactos:", error);
-    } finally {
-      setLoadingContacts(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchUserContacts();
-  }, []);
-  
-  
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -149,6 +148,46 @@ const UsersListScreen = () => {
     }
   };
 
+  const renderAddButton = (userId: string) => {
+    const isDisabled = userContacts.length >= 2;
+    const contactExists = userContacts.some(
+      (contact) => contact._id === userId
+    );
+
+    if (contactExists) {
+      return (
+        <View style={styles.contactAdded}>
+          <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+        </View>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={[styles.addButton, isDisabled && styles.addButtonDisabled]}
+        onPress={() => {
+          if (isDisabled) {
+            Alert.alert(
+              "Límite de contactos alcanzado",
+              "Ya tienes el máximo de 2 contactos permitidos. " +
+                "Por favor elimina uno antes de agregar otro.",
+              [{ text: "OK" }]
+            );
+          } else {
+            openAddContactModal(userId);
+          }
+        }}
+        disabled={isDisabled}
+      >
+        <Ionicons
+          name="person-add-outline"
+          size={20}
+          color={isDisabled ? "#aaa" : "#01579b"}
+        />
+      </TouchableOpacity>
+    );
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -167,7 +206,6 @@ const UsersListScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        {/* <TouchableWithoutFeedback onPress={dismissKeyboard}> */}
         <View style={styles.container}>
           <AppHeader title="Usuarios Disponibles" />
 
@@ -175,7 +213,7 @@ const UsersListScreen = () => {
             <Ionicons
               name="search"
               size={20}
-              color={isFocused ? "#007AFF" : "#aaa"}
+              color={isFocusedInput ? "#007AFF" : "#aaa"}
             />
             <TextInput
               placeholder="Buscar..."
@@ -183,22 +221,54 @@ const UsersListScreen = () => {
               onChangeText={handleSearch}
               style={[
                 styles.searchInput,
-                isFocused && styles.searchInputFocused,
+                isFocusedInput && styles.searchInputFocused,
               ]}
               placeholderTextColor="#999"
               cursorColor="#007AFF"
               selectionColor="#007AFF20"
-              // Añade estos props para Android:
-              includeFontPadding={false} // 🔥 Elimina padding extra en Android
-              textAlignVertical="center" // 🔥 Alinea verticalmente
+              includeFontPadding={false}
+              textAlignVertical="center"
+              onFocus={() => setIsFocusedInput(true)}
+              onBlur={() => setIsFocusedInput(false)}
             />
+          </View>
+          <View style={styles.limitContainer}>
+            {userContacts.length >= 2 && (
+              <View style={styles.limitBanner}>
+                <Ionicons
+                  name="warning"
+                  size={18}
+                  color="#FFF"
+                  style={styles.limitIcon}
+                />
+                <Text style={styles.limitText}>
+                  Has alcanzado el límite máximo de 2 contactos
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert(
+                      "Límite de contactos",
+                      "Para agregar más contactos, por favor elimina uno existente o considera actualizar a la versión premium.",
+                      [{ text: "Entendido" }]
+                    );
+                  }}
+                >
+                  <Ionicons
+                    name="information-circle"
+                    size={18}
+                    color="#FFF"
+                    style={styles.infoIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           <FlatList
             data={visibleUsers}
             keyExtractor={(item) => item._id}
             contentContainerStyle={styles.usersList}
-            renderItem={({ item, index }) => (
+            renderItem={({ item }) => (
               <View style={styles.userItemContainer}>
                 <View
                   style={[
@@ -214,22 +284,7 @@ const UsersListScreen = () => {
                   <Text style={styles.userName}>{item.name}</Text>
                   <Text style={styles.userDetail}>{item.phone}</Text>
                 </View>
-                <TouchableOpacity
-                  style={[
-                  styles.addButton,
-                  userContacts.length >= 2 && { opacity: 0.3 },
-                  ]}
-                  onPress={() => {
-                  if (userContacts.length < 2) openAddContactModal(item._id);
-                  }}
-                  disabled={userContacts.length >= 2}
-                >
-                  <Ionicons
-                  name="person-add-outline"
-                  size={20}
-                  color="#01579b"
-                  />
-                </TouchableOpacity>
+                {renderAddButton(item._id)}
               </View>
             )}
             ListEmptyComponent={() => (
@@ -244,15 +299,13 @@ const UsersListScreen = () => {
           <AddContactModal
             visible={modalVisible}
             onClose={closeAddContactModal}
-            contactUserId={selectedUserId} // 👈 aquí
-            onSuccess={() => {
-              console.log("Contacto añadido correctamente");
-              fetchUserContacts(); // 👈 Vuelve a traer los contactos
+            contactUserId={selectedUserId}
+            onSuccess={async () => {
+              await fetchUserContacts();
+              Alert.alert("Éxito", "Contacto actualizado correctamente");
             }}
-            
           />
         </View>
-        {/* </TouchableWithoutFeedback> */}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -268,7 +321,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   usersList: {
-    /*  paddingTop: 16, */
     paddingBottom: 32,
   },
   searchContainer: {
@@ -287,12 +339,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#000",
     marginLeft: 8,
-    padding: 0, // 🔥 Elimina padding interno
-    paddingTop: Platform.select({ android: 4, ios: 8 }), // 🔥 Ajuste específico
+    padding: 0,
+    paddingTop: Platform.select({ android: 4, ios: 8 }),
     paddingBottom: Platform.select({ android: 4, ios: 8 }),
   },
   searchInputFocused: {
-    borderColor: "#007AFF", // Color azul cuando está enfocado
+    borderColor: "#007AFF",
   },
   userItemContainer: {
     flexDirection: "row",
@@ -315,7 +367,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-    //backgroundColor: '#01579b'
   },
   avatarText: {
     color: "#fff",
@@ -339,16 +390,19 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999, // completamente redondeado como un pill
+    borderRadius: 999,
     borderWidth: 2,
     borderColor: "#01579b",
     alignItems: "center",
     justifyContent: "center",
   },
-  addButtonLabel: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
+  addButtonDisabled: {
+    borderColor: "#eee",
+    backgroundColor: "#f9f9f9",
+  },
+  contactExists: {
+    borderColor: "#4CAF50",
+    backgroundColor: "#E8F5E9",
   },
   emptyResults: {
     alignItems: "center",
@@ -358,6 +412,39 @@ const styles = StyleSheet.create({
   emptyResultsText: {
     color: "#8b5e3c",
     fontSize: 16,
+  },
+  limitContainer: {
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  limitBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF5252",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  limitIcon: {
+    marginRight: 8,
+  },
+  limitText: {
+    flex: 1,
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  infoIcon: {
+    marginLeft: 8,
+  },
+  contactAdded: {
+    padding: 8,
+    marginRight: 4,
   },
 });
 
