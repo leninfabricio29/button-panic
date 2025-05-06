@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,19 +9,24 @@ import {
   StatusBar,
   Image,
   Dimensions,
-  ActivityIndicator
-} from 'react-native';
-import { useState, useEffect } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import AppHeader from '@/components/AppHeader';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../app/context/AuthContext';
+  ActivityIndicator,
+  Vibration,
+  Animated,
+  Easing,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AppHeader from "@/components/AppHeader";
+import { useRouter } from "expo-router";
+import { useAuth } from "../app/context/AuthContext";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [sosActive, setSosActive] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const resetTimer = useRef(null);
   const activeUsers = 52;
   const router = useRouter();
 
@@ -29,8 +35,124 @@ export default function HomeScreen() {
     if (user && user.name) {
       return user.name;
     }
-    return 'Usuario';
+    return "Usuario";
   };
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+      }
+    };
+  }, []);
+
+  // Animación de pulso cuando está activo
+  useEffect(() => {
+    if (sosActive) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true
+          })
+        ])
+      ).start();
+      
+      // Configurar el temporizador para resetear después de 30 segundos
+      resetTimer.current = setTimeout(() => {
+        setSosActive(false);
+      }, 30000); // 30 segundos
+    } else {
+      pulseAnim.setValue(0);
+      if (resetTimer.current) {
+        clearTimeout(resetTimer.current);
+        resetTimer.current = null;
+      }
+    }
+  }, [sosActive]);
+
+  const handlePress = () => {
+    // Si ya está activo, no hacer nada
+    if (sosActive) return;
+    
+    // Animación de shake
+    Animated.sequence([
+      Animated.timing(shakeAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: -1,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true
+      })
+    ]).start();
+
+    // Vibración y activación
+    Vibration.vibrate([500, 200, 500]);
+    setSosActive(true);
+  };
+
+  // Función para resetear manualmente
+  const handleReset = () => {
+    setSosActive(false);
+    if (resetTimer.current) {
+      clearTimeout(resetTimer.current);
+      resetTimer.current = null;
+    }
+  };
+
+  // Interpolaciones
+  const pulseScale = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.05]
+  });
+
+  const shakeTranslateX = shakeAnim.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: [-10, 0, 10]
+  });
+
+  // Tiempo restante para el reset automático
+  const [timeLeft, setTimeLeft] = useState(30);
+  
+  useEffect(() => {
+    let interval;
+    if (sosActive) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setTimeLeft(30);
+    }
+    return () => clearInterval(interval);
+  }, [sosActive]);
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -40,7 +162,7 @@ export default function HomeScreen() {
         title="SafeGuard"
         showBack={false}
         rightIcon="settings-outline"
-        onRightPress={() => console.log('Settings')}
+        onRightPress={() => console.log("Settings")}
         titleColor="#f9fafb"
         iconColor="#f9fafb"
       />
@@ -49,13 +171,17 @@ export default function HomeScreen() {
         {/* Bienvenida */}
         <View style={styles.welcomeCard}>
           <Image
-            source={{ 
-              uri: user?.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' 
+            source={{
+              uri:
+                user?.avatar ||
+                "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
             }}
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.welcomeText}>¡Hola, {getUserDisplayName()}!</Text>
+            <Text style={styles.welcomeText}>
+              ¡Hola, {getUserDisplayName()}!
+            </Text>
             <Text style={styles.subtitle}>
               Tu seguridad es nuestra prioridad
             </Text>
@@ -64,56 +190,107 @@ export default function HomeScreen() {
 
         {/* SOS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Botón de emergencia</Text>
-          <View style={styles.center}>
-            <TouchableOpacity style={styles.sosButton}>
-              <Text style={styles.sosText}>SOS</Text>
-            </TouchableOpacity>
-            <Text style={styles.sosDescription}>
-              Pulsa en caso de emergencia
-            </Text>
-          </View>
-        </View>
+      <Text style={styles.sectionTitle}>Botón de emergencia</Text>
+      <View style={styles.center}>
+        <TouchableOpacity
+          onPress={handlePress}
+          disabled={sosActive}
+          activeOpacity={0.7}
+        >
+          <Animated.View
+            style={[
+              styles.sosButton,
+              {
+                backgroundColor: sosActive ? '#e63946' : '#4CAF50',
+                transform: [
+                  { scale: pulseScale },
+                  { translateX: shakeTranslateX }
+                ]
+              }
+            ]}
+          >
+            <Text style={styles.sosText}>SOS</Text>
+            {sosActive && (
+              <>
+                <Animated.View
+                  style={[
+                    styles.pulseEffect,
+                    {
+                      opacity: pulseAnim,
+                      transform: [{ scale: pulseScale }]
+                    }
+                  ]}
+                />
+                <Text style={styles.timerText}>{timeLeft}s</Text>
+              </>
+            )}
+          </Animated.View>
+        </TouchableOpacity>
+        
+        <Text style={styles.sosDescription}>
+          {sosActive 
+            ? `Emergencia activada - Reinicio en ${timeLeft}s` 
+            : 'Pulsa en caso de emergencia'}
+        </Text>
+        
+        {sosActive && (
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={handleReset}
+          >
+            <Text style={styles.resetButtonText}>Cancelar emergencia</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
 
         {/* Acciones rápidas */}
         <View>
           <Text style={styles.sectionTitle}>Acciones rápidas</Text>
           <View style={styles.quickOptionsGrid}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.quickOption}
-              onPress={() => router.push('/home/my-contacts')}
+              onPress={() => router.push("/home/my-contacts")}
             >
-              <View style={[styles.quickOptionIcon, {backgroundColor: '#FF9800'}]}>
+              <View
+                style={[styles.quickOptionIcon, { backgroundColor: "#FF9800" }]}
+              >
                 <Ionicons name="people-outline" size={24} color="white" />
               </View>
               <Text style={styles.quickOptionText}>Mis Contactos</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.quickOption}
-              onPress={() => router.push('/home/my-account')}
+              onPress={() => router.push("/home/my-account")}
             >
-              <View style={[styles.quickOptionIcon, {backgroundColor: '#4CAF50'}]}>
+              <View
+                style={[styles.quickOptionIcon, { backgroundColor: "#4CAF50" }]}
+              >
                 <Ionicons name="key-outline" size={24} color="white" />
               </View>
               <Text style={styles.quickOptionText}>Mi cuenta</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.quickOption}
-              onPress={() => router.push('/home/neighborhood')}
+              onPress={() => router.push("/home/neighborhood")}
             >
-              <View style={[styles.quickOptionIcon, {backgroundColor: '#9C27B0'}]}>
+              <View
+                style={[styles.quickOptionIcon, { backgroundColor: "#9C27B0" }]}
+              >
                 <Ionicons name="business-outline" size={24} color="white" />
               </View>
               <Text style={styles.quickOptionText}>Barrios/Grupos</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.quickOption}
-              onPress={() => router.push('/home/faq-question')}
+              onPress={() => router.push("/home/faq-question")}
             >
-              <View style={[styles.quickOptionIcon, {backgroundColor: '#E91E63'}]}>
+              <View
+                style={[styles.quickOptionIcon, { backgroundColor: "#E91E63" }]}
+              >
                 <Ionicons name="help-outline" size={24} color="white" />
               </View>
               <Text style={styles.quickOptionText}>Preguntas</Text>
@@ -127,7 +304,9 @@ export default function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.promoCard}>
               <Image
-                source={{ uri: 'https://cablefamilia.com/wp-content/uploads/2024/05/movil.png' }}
+                source={{
+                  uri: "https://cablefamilia.com/wp-content/uploads/2024/05/movil.png",
+                }}
                 style={styles.promoImage}
               />
               <Text style={styles.promoTitle}>Nuevo Plan</Text>
@@ -137,7 +316,9 @@ export default function HomeScreen() {
             </View>
             <View style={styles.promoCard}>
               <Image
-                source={{ uri: 'https://pbs.twimg.com/media/FOJwku0WQAQS1z6.jpg' }}
+                source={{
+                  uri: "https://pbs.twimg.com/media/FOJwku0WQAQS1z6.jpg",
+                }}
                 style={styles.promoImage}
               />
               <Text style={styles.promoTitle}>Seguridad Avanzada</Text>
@@ -177,20 +358,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   scrollContent: {
     padding: 16,
   },
   welcomeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f9ff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f9ff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e1f5fe',
+    borderColor: "#e1f5fe",
   },
   avatar: {
     width: 56,
@@ -200,21 +381,22 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#01579b',
+    fontWeight: "600",
+    color: "#01579b",
   },
   subtitle: {
     fontSize: 14,
-    color: '#546e7a',
+    color: "#546e7a",
   },
   section: {
-    marginBottom: 24,
+    marginVertical: 20,
+    paddingHorizontal: 15,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#01579b',
-    marginBottom: 12,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: '#333',
   },
   center: {
     alignItems: 'center',
@@ -223,63 +405,96 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#e63946',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    position: 'relative',
   },
   sosText: {
     color: 'white',
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
+    zIndex: 2,
+  },
+  timerText: {
+    position: 'absolute',
+    bottom: 20,
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    zIndex: 2,
   },
   sosDescription: {
-    marginTop: 10,
+    marginTop: 15,
     fontSize: 14,
-    color: '#546e7a',
+    color: '#666',
+    textAlign: 'center',
   },
+  pulseEffect: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    zIndex: 1,
+  },
+  resetButton: {
+    marginTop: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  resetButtonText: {
+    color: '#e63946',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
   quickOptionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   quickOption: {
-    width: '48%',
-    backgroundColor: 'white',
+    width: "48%",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 15,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#e1f5fe',
+    borderColor: "#e1f5fe",
   },
   quickOptionIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
   },
   quickOptionText: {
     fontSize: 14,
-    color: '#37474f',
-    textAlign: 'center',
+    color: "#37474f",
+    textAlign: "center",
   },
   promoCard: {
-    backgroundColor: '#f5f9ff',
+    backgroundColor: "#f5f9ff",
     width: width * 0.7,
     marginRight: 16,
     borderRadius: 12,
     padding: 12,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#e1f5fe',
+    borderColor: "#e1f5fe",
   },
   promoImage: {
     height: 110,
@@ -287,32 +502,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   promoTitle: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 16,
-    color: '#01579b',
+    color: "#01579b",
   },
   promoText: {
     fontSize: 13,
-    color: '#546e7a',
+    color: "#546e7a",
   },
   statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   statCard: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#01579b',
+    fontWeight: "bold",
+    color: "#01579b",
     marginTop: 5,
   },
   statLabel: {
     fontSize: 12,
-    color: '#546e7a',
+    color: "#546e7a",
     marginTop: 2,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

@@ -53,14 +53,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {title}
         </Text>
 
-        {/* Right Icon or spacer */}
-        {rightIcon ? (
-          <TouchableOpacity onPress={onRightPress}>
-            <Ionicons name={rightIcon} size={24} color={iconColor} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.iconSpacer} />
-        )}
+       
       </View>
     </SafeAreaView>
   );

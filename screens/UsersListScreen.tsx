@@ -7,10 +7,8 @@ import {
   StyleSheet,
   FlatList,
   SafeAreaView,
-  StatusBar,
   TouchableOpacity,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Platform,
   Keyboard,
   TextInput,
@@ -21,6 +19,7 @@ import { usersService } from "../app/src/api/services/users-service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddContactModal from "@/components/AddContactModal"; // Ajusta la ruta si es necesario
 import { Ionicons } from "@expo/vector-icons";
+import { contactsService } from "@/app/src/api/services/contact-service";
 
 interface User {
   _id: string;
@@ -32,6 +31,8 @@ const PAGE_SIZE = 20; // 👈 20 usuarios por página
 
 const UsersListScreen = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [userContacts, setUserContacts] = useState([]);
+  const [loadingContacts, setLoadingContacts] = useState(true);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleUsers, setVisibleUsers] = useState<User[]>([]);
@@ -94,6 +95,8 @@ const UsersListScreen = () => {
           (user) => user._id !== loggedUser?._id
         );
 
+        setUserContacts(userContacts);
+
         setUsers(filtered);
         setFilteredUsers(filtered);
         setVisibleUsers(filtered.slice(0, PAGE_SIZE));
@@ -106,6 +109,24 @@ const UsersListScreen = () => {
 
     fetchUsers();
   }, []);
+
+  const fetchUserContacts = async () => {
+    try {
+      const res = await contactsService.getContactsUser();
+      const myContacts = res.data || [];
+      setUserContacts(myContacts);
+    } catch (error) {
+      console.error("Error al obtener contactos:", error);
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchUserContacts();
+  }, []);
+  
+  
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -194,10 +215,20 @@ const UsersListScreen = () => {
                   <Text style={styles.userDetail}>{item.phone}</Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => openAddContactModal(item._id)}
+                  style={[
+                  styles.addButton,
+                  userContacts.length >= 2 && { opacity: 0.3 },
+                  ]}
+                  onPress={() => {
+                  if (userContacts.length < 2) openAddContactModal(item._id);
+                  }}
+                  disabled={userContacts.length >= 2}
                 >
-                  <Ionicons name="person-add-outline" size={20} color="#01579b" />
+                  <Ionicons
+                  name="person-add-outline"
+                  size={20}
+                  color="#01579b"
+                  />
                 </TouchableOpacity>
               </View>
             )}
@@ -215,9 +246,10 @@ const UsersListScreen = () => {
             onClose={closeAddContactModal}
             contactUserId={selectedUserId} // 👈 aquí
             onSuccess={() => {
-              // Opcional: refrescar usuarios, resetear, etc
               console.log("Contacto añadido correctamente");
+              fetchUserContacts(); // 👈 Vuelve a traer los contactos
             }}
+            
           />
         </View>
         {/* </TouchableWithoutFeedback> */}
@@ -253,7 +285,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
     marginLeft: 8,
     padding: 0, // 🔥 Elimina padding interno
     paddingTop: Platform.select({ android: 4, ios: 8 }), // 🔥 Ajuste específico
