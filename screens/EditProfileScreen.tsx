@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  ActivityIndicator, // Added ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,7 @@ import moment from 'moment';
 import 'moment/locale/es'; // Import Spanish locale for moment
 import { usersService } from '../app/src/api/services/users-service'; // Assuming this service exists
 import { useAuth } from '../app/context/AuthContext'; // Assuming this context exists
+import { mediaService } from '@/app/src/api/services/media-service';
 
 moment.locale('es'); // Set locale to Spanish
 
@@ -27,8 +28,10 @@ moment.locale('es'); // Set locale to Spanish
 interface UserProfile {
   _id: string;
   ci: string;
+  avatar: string,
   name: string;
   phone: string;
+  email: string;
   fcmToken: string;
   isActive: boolean;
   neighborhood: any;
@@ -44,21 +47,19 @@ interface UserProfile {
   password?: string;
 }
 
-// Avatar options using DiceBear seeds
-const avatarSeedOptions = Array.from({ length: 20 }).map((_, i) => ({
-  id: i + 1, // Seeds are typically 1-based
-  url: `https://api.dicebear.com/9.x/micah/png?seed=${i + 1}`,
-}));
-
 export default function UserAccountScreen() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [avatar, setAvatar] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false); // Use boolean for picker visibility
+  // Definir avatarOptions aquí, no afuera del componente
+  const [avatarOptions, setAvatarOptions] = useState<{ id: string; url: string }[]>([]);
 
   // State to track if changes have been made
   const [hasChanges, setHasChanges] = useState(false);
@@ -70,6 +71,8 @@ export default function UserAccountScreen() {
           const fullUser: UserProfile = await usersService.getUserById(user._id);
           setUserProfile(fullUser);
           setPhone(fullUser.phone || '');
+          setEmail(fullUser.email || '')
+          setAvatar(fullUser.avatar || '')
           // Use the fetched photo_profile_url, or a default DiceBear based on a hash or user ID if available/needed
           setSelectedAvatarUrl(fullUser.photo_profile_url || `https://api.dicebear.com/9.x/micah/png?seed=${fullUser._id.substring(0, 5)}`); // Example: Use part of ID as seed if no URL
           // Reset hasChanges after initial load
@@ -90,24 +93,50 @@ export default function UserAccountScreen() {
     fetchProfile();
   }, [user?._id]); // Depend on user._id
 
+  useEffect(() => {
+    const fetchPackagesAvatar = async () => {
+      try {
+        const packages = await mediaService.getPackagesAvatar();
+        const options = packages
+          .filter((pkg: any) => pkg.type === 'avatar' && pkg.status === true)
+          .flatMap((pkg: any) =>
+            pkg.images.map((img: any) => ({
+              id: img._id,
+              url: img.url,
+            }))
+          );
+        setAvatarOptions(options);
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'No se pudieron cargar los avatares');
+      }
+    };
+    fetchPackagesAvatar();
+  }, []);
+
+
   // Effect to track changes
   useEffect(() => {
     if (userProfile) {
       const phoneChanged = phone !== (userProfile.phone || '');
+      const emailChanged = email !== (userProfile.email || '');
       const avatarChanged = selectedAvatarUrl !== (userProfile.photo_profile_url || `https://api.dicebear.com/9.x/micah/png?seed=${userProfile._id.substring(0, 5)}`); // Compare with initial loaded avatar URL
-      setHasChanges(phoneChanged || avatarChanged);
+      setHasChanges(phoneChanged || avatarChanged || emailChanged);
     }
-  }, [phone, selectedAvatarUrl, userProfile]);
+  }, [phone, email, selectedAvatarUrl, userProfile]);
 
-  const handleAvatarSelect = (avatar: { id: number; url: string }) => {
-    setSelectedAvatarUrl(avatar.url);
+  const handleAvatarSelect = (avatarItem: { id: string; url: string }) => {
+    setSelectedAvatarUrl(avatarItem.url);
     setShowAvatarPicker(false); // Hide the picker after selection
   };
 
   const handlePhoneChange = (text: string) => {
-      setPhone(text);
-  }
+    setPhone(text);
+  };
 
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+  };
 
   const handleSaveChanges = async () => {
     if (!userProfile || !hasChanges) return;
@@ -117,6 +146,7 @@ export default function UserAccountScreen() {
 
       const updates = {
         phone,
+        email,
         photo_profile_url: selectedAvatarUrl,
       };
 
@@ -126,7 +156,6 @@ export default function UserAccountScreen() {
 
       // Optimistically update the UI state with the new values
     
-
       // Assuming the API call was successful, reset hasChanges
       setHasChanges(false);
 
@@ -139,8 +168,6 @@ export default function UserAccountScreen() {
       setSaving(false);
     }
   };
-
-  
 
   if (loading) {
     return (
@@ -166,10 +193,6 @@ export default function UserAccountScreen() {
     );
   }
 
-  // Determine the currently selected seed based on the URL for highlighting in the picker
-  const currentAvatarSeed = avatarSeedOptions.find(opt => opt.url === selectedAvatarUrl)?.id || null;
-
-
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader title="Mi Cuenta" showBack />
@@ -178,14 +201,14 @@ export default function UserAccountScreen() {
         {/* Mensaje de advertencia */}
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color="#3498db" />
-          <Text style={styles.infoText}>Solo puedes editar tu avatar y número de teléfono</Text>
+          <Text style={styles.infoText}>Solo puedes editar tu avatar, email y número de teléfono</Text>
         </View>
 
         <View style={styles.profileCard}>
           {/* Avatar section with edit icon */}
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: selectedAvatarUrl || `https://api.dicebear.com/9.x/micah/png?seed=${userProfile._id.substring(0, 5)}` }} // Use ID part as fallback seed
+              source={avatar ? { uri: avatar } : null}
               style={styles.avatar}
             />
             <TouchableOpacity
@@ -199,8 +222,8 @@ export default function UserAccountScreen() {
           {/* Horizontal Avatar Picker */}
           {showAvatarPicker && (
             <FlatList
-              data={avatarSeedOptions}
-              keyExtractor={(item) => item.id.toString()}
+              data={avatarOptions}
+              keyExtractor={(item) => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.avatarPicker}
@@ -210,7 +233,7 @@ export default function UserAccountScreen() {
                     source={{ uri: item.url }}
                     style={[
                       styles.avatarOption,
-                      currentAvatarSeed === item.id && styles.avatarOptionSelected, // Highlight selected
+                      selectedAvatarUrl === item.url && styles.avatarOptionSelected,
                     ]}
                   />
                 </TouchableOpacity>
@@ -226,16 +249,28 @@ export default function UserAccountScreen() {
               <Text style={styles.staticText}>{userProfile.name}</Text>
             </View>
 
-          
-
             {/* CI (Read-only) */}
             <View style={styles.fieldContainer}>
                 <Text style={styles.label}>Cédula</Text>
                 <Text style={styles.staticText}>{userProfile.ci}</Text>
             </View>
 
-         
-
+            {/* Email (Editable) */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Email</Text>
+              <View style={styles.editableField}>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={handleEmailChange}
+                  keyboardType="email-address"
+                  placeholderTextColor="#999"
+                  autoCapitalize="none"
+                />
+                {/* Edit icon inside input field (for styling purposes) */}
+                <Ionicons name="pencil" size={20} color="#32d6a6" style={styles.inputIcon} />
+              </View>
+            </View>
 
             {/* Phone (Editable) */}
             <View style={styles.fieldContainer}>
@@ -248,7 +283,6 @@ export default function UserAccountScreen() {
                   keyboardType="phone-pad"
                   placeholderTextColor="#999"
                   autoCapitalize="none"
-                  // editable={true} // Ensure it's editable
                 />
                 {/* Edit icon inside input field (for styling purposes) */}
                 <Ionicons name="pencil" size={20} color="#32d6a6" style={styles.inputIcon} />
@@ -282,8 +316,6 @@ export default function UserAccountScreen() {
               </TouchableOpacity>
           )}
         </View>
-
-        
       </ScrollView>
 
       {/* Saving Overlay */}

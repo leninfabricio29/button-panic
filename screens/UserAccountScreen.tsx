@@ -91,7 +91,7 @@ const CommunityScreen = () => {
         />
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text style={styles.name}>{neighborhoodDetails.name}</Text>
+            <Text style={styles.name}>{neighborhoodDetails?.name || "Nombre no disponible"}</Text>
             <View style={styles.memberCounter}>
               <Ionicons name="people" size={16} color="#01579b" />
               <Text style={styles.memberCount}>
@@ -101,8 +101,8 @@ const CommunityScreen = () => {
           </View>
 
           <Text style={styles.description}>
-            {neighborhoodDetails.description ||
-              `Comunidad organizada del sector ${neighborhoodDetails.name}, unidos por la seguridad y bienestar de todos.`}
+            {neighborhoodDetails?.description ||
+              `Comunidad organizada del sector ${neighborhoodDetails?.name || "desconocido"}, unidos por la seguridad y bienestar de todos.`}
           </Text>
         </View>
       </View>
