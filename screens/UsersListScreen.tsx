@@ -212,7 +212,7 @@ const UsersListScreen = () => {
           <View style={styles.searchContainer}>
             <Ionicons
               name="search"
-              size={20}
+              size={24}
               color={isFocusedInput ? "#007AFF" : "#aaa"}
             />
             <TextInput

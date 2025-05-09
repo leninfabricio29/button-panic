@@ -21,28 +21,68 @@ export const neighborhoodService = {
       throw error;
     }
   }
-,
-async sendPetitionNeighborhood(neighborhoodId: string, userId: string) {
-  try {
-    const token = await AsyncStorage.getItem('auth-token');
-    if (!token) {
-      throw new Error('No se encontró token');
-    }
-
-    // Using POST with a proper request body
-    const response = await api.post('/neighborhood/petition', {
-      neighborhoodId,
-      userId
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`
+  ,
+  async sendPetitionNeighborhood(neighborhoodId: string, userId: string) {
+    try {
+      const token = await AsyncStorage.getItem('auth-token');
+      if (!token) {
+        throw new Error('No se encontró token');
       }
-    });
 
-    return response.data.data;
-  } catch (error) {
-    console.error('Error al enviar petición:', error);
-    throw error;
+      // Using POST with a proper request body
+      const response = await api.post('/neighborhood/petition', {
+        neighborhoodId,
+        userId
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al enviar petición:', error);
+      throw error;
+    }
   }
-}
+  , //getNeighborhoodUsers
+  async getNeighborhoodUsers(neighborhoodId: string) {
+    try {
+      const token = await AsyncStorage.getItem('auth-token');
+      if (!token) {
+        throw new Error('No se encontró token');
+      }
+
+      const response = await api.get(`neighborhood/${neighborhoodId}/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener usuarios del barrio:', error);
+      throw error;
+    }
+  }
+  , //getNeighborhoodDetails
+  async getNeighborhoodDetails(neighborhoodId: string) {
+    try {
+      const token = await AsyncStorage.getItem('auth-token');
+      if (!token) {
+        throw new Error('No se encontró token');
+      }
+
+      const response = await api.get(`neighborhood/${neighborhoodId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener barrio:', error);
+      throw error;
+    }
+  }
 };

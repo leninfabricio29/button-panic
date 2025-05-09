@@ -20,7 +20,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 
 const { width } = Dimensions.get("window");
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -43,8 +43,8 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const checkPolicyAgreement = async () => {
-      const accepted = await AsyncStorage.getItem('policyAccepted');
-      if (accepted !== 'true') {
+      const accepted = await AsyncStorage.getItem("policyAccepted");
+      if (accepted !== "true") {
         setShowPolicyModal(true);
       }
     };
@@ -66,17 +66,17 @@ export default function HomeScreen() {
             toValue: 1,
             duration: 1000,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true
+            useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 0,
             duration: 1000,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true
-          })
+            useNativeDriver: true,
+          }),
         ])
       ).start();
-      
+
       // Configurar el temporizador para resetear después de 30 segundos
       resetTimer.current = setTimeout(() => {
         setSosActive(false);
@@ -93,29 +93,29 @@ export default function HomeScreen() {
   const handlePress = () => {
     // Si ya está activo, no hacer nada
     if (sosActive) return;
-    
+
     // Animación de shake
     Animated.sequence([
       Animated.timing(shakeAnim, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true
+        useNativeDriver: true,
       }),
       Animated.timing(shakeAnim, {
         toValue: -1,
         duration: 100,
-        useNativeDriver: true
+        useNativeDriver: true,
       }),
       Animated.timing(shakeAnim, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true
+        useNativeDriver: true,
       }),
       Animated.timing(shakeAnim, {
         toValue: 0,
         duration: 100,
-        useNativeDriver: true
-      })
+        useNativeDriver: true,
+      }),
     ]).start();
 
     // Vibración y activación
@@ -123,34 +123,25 @@ export default function HomeScreen() {
     setSosActive(true);
   };
 
-  // Función para resetear manualmente
-  const handleReset = () => {
-    setSosActive(false);
-    if (resetTimer.current) {
-      clearTimeout(resetTimer.current);
-      resetTimer.current = null;
-    }
-  };
-
   // Interpolaciones
   const pulseScale = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.05]
+    outputRange: [1, 1.05],
   });
 
   const shakeTranslateX = shakeAnim.interpolate({
     inputRange: [-1, 0, 1],
-    outputRange: [-10, 0, 10]
+    outputRange: [-10, 0, 10],
   });
 
   // Tiempo restante para el reset automático
   const [timeLeft, setTimeLeft] = useState(10);
-  
+
   useEffect(() => {
     let interval;
     if (sosActive) {
       interval = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
             return 0;
@@ -163,7 +154,6 @@ export default function HomeScreen() {
     }
     return () => clearInterval(interval);
   }, [sosActive]);
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,59 +191,49 @@ export default function HomeScreen() {
 
         {/* SOS */}
         <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Botón de emergencia</Text>
-      <View style={styles.center}>
-        <TouchableOpacity
-          onPress={handlePress}
-          disabled={sosActive}
-          activeOpacity={0.7}
-        >
-          <Animated.View
-            style={[
-              styles.sosButton,
-              {
-                backgroundColor: sosActive ? '#e63946' : '#4CAF50',
-                transform: [
-                  { scale: pulseScale },
-                  { translateX: shakeTranslateX }
-                ]
-              }
-            ]}
-          >
-            <Text style={styles.sosText}>SOS</Text>
-            {sosActive && (
-              <>
-                <Animated.View
-                  style={[
-                    styles.pulseEffect,
-                    {
-                      opacity: pulseAnim,
-                      transform: [{ scale: pulseScale }]
-                    }
-                  ]}
-                />
-                <Text style={styles.timerText}>{timeLeft}s</Text>
-              </>
-            )}
-          </Animated.View>
-        </TouchableOpacity>
-        
-        <Text style={styles.sosDescription}>
-          {sosActive 
-            ? `Emergencia activada - Reinicio en ${timeLeft}s` 
-            : 'Pulsa en caso de emergencia'}
-        </Text>
-        
-        {sosActive && (
-          <TouchableOpacity 
-            style={styles.resetButton}
-            onPress={handleReset}
-          >
-            <Text style={styles.resetButtonText}>Cancelar emergencia</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+          <Text style={styles.sectionTitle}>Botón de emergencia</Text>
+          <View style={styles.center}>
+            <TouchableOpacity
+              onPress={handlePress}
+              disabled={sosActive}
+              activeOpacity={0.7}
+            >
+              <Animated.View
+                style={[
+                  styles.sosButton,
+                  {
+                    backgroundColor: sosActive ? "#e63946" : "#4CAF50",
+                    transform: [
+                      { scale: pulseScale },
+                      { translateX: shakeTranslateX },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={styles.sosText}>SOS</Text>
+                {sosActive && (
+                  <>
+                    <Animated.View
+                      style={[
+                        styles.pulseEffect,
+                        {
+                          opacity: pulseAnim,
+                          transform: [{ scale: pulseScale }],
+                        },
+                      ]}
+                    />
+                  </>
+                )}
+              </Animated.View>
+            </TouchableOpacity>
+
+            <Text style={styles.sosDescription}>
+              {sosActive
+                ? `Emergencia activada`
+                : "Pulsa en caso de emergencia"}
+            </Text>
+          </View>
+        </View>
 
         {/* Acciones rápidas */}
         <View>
@@ -362,8 +342,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-
-
     </SafeAreaView>
   );
 }
@@ -407,67 +385,46 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 15,
-    color: '#333',
+    color: "#333",
   },
   center: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   sosButton: {
     width: 140,
     height: 140,
     borderRadius: 70,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    position: 'relative',
+    position: "relative",
   },
   sosText: {
-    color: 'white',
+    color: "white",
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     zIndex: 2,
   },
-  timerText: {
-    position: 'absolute',
-    bottom: 20,
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    zIndex: 2,
-  },
+
   sosDescription: {
     marginTop: 15,
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   pulseEffect: {
-    position: 'absolute',
+    position: "absolute",
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
     zIndex: 1,
-  },
-  resetButton: {
-    marginTop: 15,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  resetButtonText: {
-    color: '#e63946',
-    fontSize: 14,
-    fontWeight: '600',
   },
 
   quickOptionsGrid: {
