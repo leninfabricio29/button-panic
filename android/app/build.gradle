@@ -173,7 +173,11 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+
 }
+
+
 
 apply plugin: 'com.google.gms.google-services'
 

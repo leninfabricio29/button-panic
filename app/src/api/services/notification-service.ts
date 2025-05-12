@@ -1,5 +1,4 @@
 import api from '../api'; // ✅ Tu instancia personalizada de Axios
-import AsyncStorage from '@react-native-async-storage/async-storage';
 // notification-service.ts
 export const notifyService = {
     async sendPetitioPassword(email: string) {

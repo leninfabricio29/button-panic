@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useRouter, useSegments } from "expo-router";
 import { AuthProvider, useAuth } from "../app/context/AuthContext";
-//import '../utils/firebase-config'
-import messaging from "@react-native-firebase/messaging";
+import messaging from '@react-native-firebase/messaging';
+import { fcmService } from '@/app/src/api/services/panic-service';
 
 function RootNavigation() {
   const { isAuthenticated } = useAuth();
@@ -21,6 +21,30 @@ function RootNavigation() {
     }
   }, [isAuthenticated, segments]);
 
+  useEffect(() => {
+    const setupFCM = async () => {
+      try {
+        const token = await messaging().getToken();
+        console.log("📲 Token inicial FCM:", token);
+        await fcmService.saveToken(token);
+
+        // Escuchar actualizaciones de token
+        const unsubscribe = messaging().onTokenRefresh(async newToken => {
+          console.log("🔁 Nuevo token FCM:", newToken);
+          await fcmService.saveToken(newToken);
+        });
+
+        return unsubscribe;
+      } catch (err) {
+        console.error("❌ Error en setupFCM:", err);
+      }
+    };
+
+    if (isAuthenticated) {
+      setupFCM();
+    }
+  }, [isAuthenticated]);
+
   if (isAuthenticated === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -33,16 +57,6 @@ function RootNavigation() {
 }
 
 export default function Layout() {
-  useEffect(() => {
-    // Puedes manejar mensajes en primer plano si quieres aquí
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log("Mensaje recibido en foreground:", remoteMessage);
-      // Puedes mostrar una alerta, navegación o lógica aquí
-    });
-
-    return unsubscribe;
-  }, []);
-
   return (
     <AuthProvider>
       <RootNavigation />

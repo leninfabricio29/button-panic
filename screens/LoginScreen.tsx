@@ -19,6 +19,10 @@ import { authService } from '../app/src/api/services/auth-service';
 import { useAuth } from '../app/context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PolicyModal from '@/components/PolicyModal';
+import { fcmService } from '@/app/src/api/services/panic-service';
+import messaging from '@react-native-firebase/messaging';
+
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,9 +39,9 @@ export default function LoginScreen() {
       Alert.alert('Campos incompletos', 'Por favor ingresa tu correo y contraseña.');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       const response = await authService.login({ email, password });
       console.log('Login response:', response);
@@ -45,7 +49,7 @@ export default function LoginScreen() {
       if (response.data && response.data.token) {
         // Guardar token y datos de usuario
         await AsyncStorage.setItem('auth-token', response.data.token);
-        
+
         // Asegurarse de que user existe antes de guardarlo
         if (response.data.user) {
           await AsyncStorage.setItem('user-data', JSON.stringify(response.data.user));
@@ -53,29 +57,33 @@ export default function LoginScreen() {
         } else {
           console.warn("No se recibieron datos de usuario");
         }
-        
-        // Actualizar el contexto de autenticación
 
-        //await registerForPushNotificationsAsync();
+      const fcmToken = await messaging().getToken();
+    console.log("🔐 Token FCM obtenido:", fcmToken);
+
+
+    await fcmService.saveToken(fcmToken); // ← Aquí se guarda en el backend
+
+
         await login();
-  
+
         router.replace('/');
       } else {
         console.warn("Respuesta inesperada:", response);
         Alert.alert('Error', 'No se recibió un token válido. Intenta de nuevo.');
       }
     } catch (error: any) {
-        let errorMessage = 'Error al iniciar sesión';
+      let errorMessage = 'Error al iniciar sesión';
 
-        if (error.response && error.response.data) {
-            // Si hay un mensaje de error en la respuesta, úsalo
-            if (error.response.data.message) {
-              errorMessage = error.response.data.message;
-            } else if (typeof error.response.data === 'string') {
-              errorMessage = error.response.data;
-            }
-          }
-      
+      if (error.response && error.response.data) {
+        // Si hay un mensaje de error en la respuesta, úsalo
+        if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        }
+      }
+
       // Mostrar mensaje específico si es posible
       Alert.alert('Error al iniciar sesión: ', errorMessage);
     } finally {
@@ -92,9 +100,9 @@ export default function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            <Image 
-              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2345/2345500.png' }} 
-              style={styles.logo} 
+            <Image
+              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2345/2345500.png' }}
+              style={styles.logo}
               resizeMode="contain"
             />
             <Text style={styles.title}>SafeGuard</Text>
@@ -115,7 +123,7 @@ export default function LoginScreen() {
                 editable={!loading}
               />
             </View>
-            
+
             <View style={styles.inputContainer}>
               <Ionicons name="lock-closed-outline" size={22} color="#01579b" style={styles.inputIcon} />
               <TextInput
@@ -127,7 +135,7 @@ export default function LoginScreen() {
                 placeholderTextColor="#999"
                 editable={!loading}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setSecureTextEntry(!secureTextEntry)}
                 disabled={loading}
                 style={styles.eyeButton}
@@ -141,26 +149,26 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.linksRow}>
-  <TouchableOpacity 
-    onPress={() => router.push('/auth/forgot-password')} 
-    disabled={loading}
-  >
-    <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-  </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/auth/forgot-password')}
+                disabled={loading}
+              >
+                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+              </TouchableOpacity>
 
-  <TouchableOpacity 
-    onPress={() => setShowPolicyModal(true)} 
-    disabled={loading}
-    style={{ marginLeft: 15 }}
-  >
-    <Text style={styles.forgotPasswordText}>Ver políticas</Text>
-  </TouchableOpacity>
-</View>
+              <TouchableOpacity
+                onPress={() => setShowPolicyModal(true)}
+                disabled={loading}
+                style={{ marginLeft: 15 }}
+              >
+                <Text style={styles.forgotPasswordText}>Ver políticas</Text>
+              </TouchableOpacity>
+            </View>
 
 
 
-            <TouchableOpacity 
-              style={[styles.loginButton, loading && styles.disabledButton]} 
+            <TouchableOpacity
+              style={[styles.loginButton, loading && styles.disabledButton]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -177,8 +185,8 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.registerContainer} 
+            <TouchableOpacity
+              style={styles.registerContainer}
               onPress={() => router.push('/auth/register')}
               disabled={loading}
             >
@@ -187,14 +195,14 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          
+
           <Text style={styles.creditsText}>Powered by SoftKilla.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
-      <PolicyModal 
-  visible={showPolicyModal} 
-  onAccept={() => setShowPolicyModal(false)} 
-/>
+      <PolicyModal
+        visible={showPolicyModal}
+        onAccept={() => setShowPolicyModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -333,5 +341,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 4
   },
-  
+
 });
