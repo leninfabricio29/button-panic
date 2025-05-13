@@ -53,11 +53,13 @@ export const neighborhoodService = {
         throw new Error('No se encontró token');
       }
 
-      const response = await api.get(`neighborhood/${neighborhoodId}/users`, {
-        headers: {
+      const response = await api.get(`/neighborhood/${neighborhoodId}/users`, {
+        headers: { 
           Authorization: `Bearer ${token}`
         }
       });
+
+      console.log(response.data)
 
       return response.data;
     } catch (error) {
@@ -73,7 +75,7 @@ export const neighborhoodService = {
         throw new Error('No se encontró token');
       }
 
-      const response = await api.get(`neighborhood/${neighborhoodId}`, {
+      const response = await api.get(`/neighborhood/${neighborhoodId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

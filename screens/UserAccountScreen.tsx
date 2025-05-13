@@ -1,5 +1,4 @@
 /* // app/screens/UserAccountScreen.tsx*/
-
 import {
   View,
   Text,
@@ -7,6 +6,7 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { useAuth } from "../app/context/AuthContext"; // Asegúrate de ajustar esta ruta
@@ -14,64 +14,122 @@ import { useEffect, useState } from "react";
 import { neighborhoodService } from "@/app/src/api/services/neighborhood-service";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { usersService } from "@/app/src/api/services/users-service";
 
 const CommunityScreen = () => {
   const { user } = useAuth(); // Obtener el usuario autenticado
   const [loading, setLoading] = useState(true);
   const [neighborhoodUsers, setNeighborhoodUsers] = useState([]);
   const [neighborhoodDetails, setNeighborhoodDetails] = useState(null);
+  const [hasNeighborhood, setHasNeighborhood] = useState(true);
+  const [neighborhoodID, setNeighborhoodID] = useState(null);
 
-  //Obtener los usuarios que pertenecen al barrio
-  const fetchNeighborhoodsByUsers = async () => {
+  const fetchUserDetails = async () => {
     try {
-      //console.log("barrio del usuario:", user);
-      // Aquí deberías llamar a tu servicio para obtener los barrios
-      const data = await neighborhoodService.getNeighborhoodUsers(
-        user.neighborhood
-      );
-      console.log("Barrios:", data);
-      setNeighborhoodUsers(data.users);
+      const data = await usersService.getUserById(user._id);
+      console.log("user", data.neighborhood);
+      setNeighborhoodID(data.neighborhood); // Esto actualiza el estado
+      return data.neighborhood; // Retornamos el ID para usarlo en el useEffect
     } catch (error) {
-      console.error("Error cargando barrios:", error);
-    } finally {
-      setLoading(false);
+      console.log("error al obtener la información");
+      return null;
     }
   };
 
-  //Obtener la informacion del barrio
-  const fetchNeighborhoodsDetails = async () => {
+  //Obtener los usuarios que pertenecen al barrio
+  const fetchNeighborhoodsByUsers = async (id) => {
     try {
-      // Aquí deberías llamar a tu servicio para obtener los barrios
-      const data = await neighborhoodService.getNeighborhoodDetails(
-        user.neighborhood
-      );
-      console.log("Barrio Details:", data.neighborhood);
-      // Añadimos una imagen aleatoria al barrio
+      if (!id) {
+        setHasNeighborhood(false);
+        return;
+      }
 
-      setNeighborhoodDetails(data.neighborhood);
+      const data = await neighborhoodService.getNeighborhoodUsers(id);
+
+      if (!data?.users?.length) {
+        setHasNeighborhood(false);
+      } else {
+        setNeighborhoodUsers(data.users);
+      }
     } catch (error) {
       console.error("Error cargando barrios:", error);
-    } finally {
-      setLoading(false);
+      setHasNeighborhood(false);
+    }
+  };
+
+  // Obtener la informacion del barrio
+  const fetchNeighborhoodsDetails = async (id) => {
+    try {
+      if (!id) {
+        setHasNeighborhood(false);
+        return;
+      }
+
+      const data = await neighborhoodService.getNeighborhoodDetails(id);
+      console.log("Barrio Details:", data.neighborhood);
+
+      if (!data?.neighborhood) {
+        setHasNeighborhood(false);
+      } else {
+        setNeighborhoodDetails(data.neighborhood);
+      }
+    } catch (error) {
+      console.error("Error cargando barrios:", error);
+      setHasNeighborhood(false);
     }
   };
 
   useEffect(() => {
-    fetchNeighborhoodsByUsers();
-    fetchNeighborhoodsDetails();
-    /*  console.log("user", user);
-    console.log("neighborhoodUsers", neighborhoodUsers);
-    console.log("neighborhoodDetails", neighborhoodDetails); */
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+
+      // 1. Primero obtenemos los detalles del usuario
+      const neighborhoodId = await fetchUserDetails();
+
+      // 2. Solo si tenemos un neighborhoodID, hacemos las otras llamadas
+      if (neighborhoodId) {
+        await Promise.all([
+          fetchNeighborhoodsByUsers(neighborhoodId),
+          fetchNeighborhoodsDetails(neighborhoodId),
+        ]);
+      } else {
+        setHasNeighborhood(false);
+      }
+
+      setLoading(false);
+    };
+
+    loadData();
+  }, [user._id]); // Dependencia del user._id
 
   if (loading) {
     return (
-      <SafeAreaView>
+      <SafeAreaView style={styles.loaderContainer}>
         <ActivityIndicator
           size="large"
           color="#32d6a6"
           style={{ marginTop: 50 }}
         />
+        <Text style={styles.loadingText}>Cargando información...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Pantalla para cuando el usuario no pertenece a un barrio
+  if (!hasNeighborhood) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <AppHeader title="Mi comunidad" showBack />
+        <View style={styles.noNeighborhoodContainer}>
+          <Ionicons name="home-outline" size={80} color="#CCCCCC" />
+          <Text style={styles.noNeighborhoodTitle}>
+            No perteneces a ninguna comunidad
+          </Text>
+          <Text style={styles.noNeighborhoodDescription}>
+            Actualmente no estás registrado en ningún barrio. Unete a una
+            comunidad en Barrios/Grupos.
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -91,7 +149,9 @@ const CommunityScreen = () => {
         />
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text style={styles.name}>{neighborhoodDetails?.name || "Nombre no disponible"}</Text>
+            <Text style={styles.name}>
+              {neighborhoodDetails?.name || "Nombre no disponible"}
+            </Text>
             <View style={styles.memberCounter}>
               <Ionicons name="people" size={16} color="#01579b" />
               <Text style={styles.memberCount}>
@@ -102,7 +162,9 @@ const CommunityScreen = () => {
 
           <Text style={styles.description}>
             {neighborhoodDetails?.description ||
-              `Comunidad organizada del sector ${neighborhoodDetails?.name || "desconocido"}, unidos por la seguridad y bienestar de todos.`}
+              `Comunidad organizada del sector ${
+                neighborhoodDetails?.name || "desconocido"
+              }, unidos por la seguridad y bienestar de todos.`}
           </Text>
         </View>
       </View>
@@ -130,6 +192,7 @@ const CommunityScreen = () => {
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -205,7 +268,40 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     lineHeight: 20,
   },
+  // Estilos para la pantalla de "No pertenece a ningún barrio"
+  noNeighborhoodContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  noNeighborhoodTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#01579b",
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  noNeighborhoodDescription: {
+    fontSize: 16,
+    color: "#546e7a",
+    textAlign: "center",
+    marginBottom: 30,
+    lineHeight: 22,
+  },
+  contactButton: {
+    backgroundColor: "#32d6a6",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  contactButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });
 
 export default CommunityScreen;
-

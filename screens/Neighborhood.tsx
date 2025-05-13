@@ -36,6 +36,8 @@ export default function NeighborhoodScreen() {
   const { user } = useAuth();
 
 
+  
+
   useEffect(() => {
     const fetchNeighborhoods = async () => {
       try {

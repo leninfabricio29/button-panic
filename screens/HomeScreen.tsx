@@ -41,6 +41,7 @@ export default function HomeScreen() {
     return "Usuario";
   };
 
+
   useEffect(() => {
     const checkPolicyAgreement = async () => {
       const accepted = await AsyncStorage.getItem("policyAccepted");
@@ -49,6 +50,7 @@ export default function HomeScreen() {
       }
     };
     checkPolicyAgreement();
+    console.log(user)
 
     return () => {
       if (resetTimer.current) {
