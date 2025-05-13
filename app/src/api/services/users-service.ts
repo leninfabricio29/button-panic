@@ -16,6 +16,17 @@ export const usersService = {
     const response = await api.get(`/users/${id}`);
     console.log('Usuario obtenido:', response.data); // aquí viene un solo usuario
     return response.data; // aquí viene un solo usuario
+  },
+
+  updateUser: async (id: string, data: { email?: string; phone?: string; avatar?: string }) => {
+    try {
+      const response = await api.put(`/users/${id}`, data);
+      console.log('Usuario actualizado:', response.data);
+      return response.data; // contiene { message, user }
+    } catch (error) {
+      console.error('Error al actualizar usuario', error);
+      throw error;
+    }
   }
-  
+
 };

@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type AuthContextType = {
   isAuthenticated: boolean;
   user: any | null;
+  setUser: React.Dispatch<React.SetStateAction<any | null>>; // 👈 NUEVO
   login: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -14,6 +15,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
+  setUser: () => {}, // ✅ función vacía como placeholder
   login: async () => {},
   logout: async () => {},
 });
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = {
     isAuthenticated,
     user,
+    setUser,
     login,
     logout
   };

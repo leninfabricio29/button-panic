@@ -26,4 +26,28 @@ export const fcmService = {
       throw error;
     }
   },
+
+  sendAlarm : async (coordinates: string[]) => {
+    try {
+       const token = await AsyncStorage.getItem('auth-token');
+      if (!token) {
+        throw new Error('No se encontró token de autenticación');
+      }
+
+      const response = await api.post(
+        '/users/token', // <-- ajusta si tu ruta real es diferente
+        { coordinates },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response;
+
+    } catch (error) {
+      
+    }
+    } 
 };

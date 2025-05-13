@@ -21,6 +21,7 @@ import 'moment/locale/es'; // Import Spanish locale for moment
 import { usersService } from '../app/src/api/services/users-service'; // Assuming this service exists
 import { useAuth } from '../app/context/AuthContext'; // Assuming this context exists
 import { mediaService } from '@/app/src/api/services/media-service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 moment.locale('es'); // Set locale to Spanish
 
@@ -48,7 +49,7 @@ interface UserProfile {
 }
 
 export default function UserAccountScreen() {
-  const { user, logout } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -74,7 +75,7 @@ export default function UserAccountScreen() {
           setEmail(fullUser.email || '')
           setAvatar(fullUser.avatar || '')
           // Use the fetched photo_profile_url, or a default DiceBear based on a hash or user ID if available/needed
-          setSelectedAvatarUrl(fullUser.photo_profile_url || `https://api.dicebear.com/9.x/micah/png?seed=${fullUser._id.substring(0, 5)}`); // Example: Use part of ID as seed if no URL
+          setSelectedAvatarUrl(fullUser.avatar)
           // Reset hasChanges after initial load
           setHasChanges(false);
         } else {
@@ -138,36 +139,62 @@ export default function UserAccountScreen() {
     setEmail(text);
   };
 
-  const handleSaveChanges = async () => {
-    if (!userProfile || !hasChanges) return;
+   // asegúrate de importar useAuth
 
-    try {
-      setSaving(true);
 
-      const updates = {
-        phone,
-        email,
-        photo_profile_url: selectedAvatarUrl,
-      };
 
-      // Aquí llamarías a tu servicio real de actualizar perfil
-      console.log("Saving updates:", updates); // Log updates for testing
-      // await usersService.updateUserProfile(userProfile._id, updates);
 
-      // Optimistically update the UI state with the new values
-    
-      // Assuming the API call was successful, reset hasChanges
-      setHasChanges(false);
+const handleSaveChanges = async () => {
+  if (!userProfile || !hasChanges) return;
 
-      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      Alert.alert('Error', 'No se pudieron guardar los cambios.');
-      // Potentially revert state or refetch profile if save fails
-    } finally {
-      setSaving(false);
-    }
-  };
+  try {
+    setSaving(true);
+
+    await usersService.updateUser(userProfile._id, {
+      email,
+      phone,
+      avatar: selectedAvatarUrl ?? '',
+    });
+
+    // 🔄 Datos actualizados del usuario
+    const updatedUser = {
+      ...user,
+      email,
+      phone,
+      avatar: selectedAvatarUrl ?? '',
+      photo_profile_url: selectedAvatarUrl ?? '',
+    };
+
+    // ✅ Actualiza el contexto global
+    setUser(updatedUser);
+
+    // ✅ Persiste en AsyncStorage
+    await AsyncStorage.setItem('user-data', JSON.stringify(updatedUser));
+
+    // ✅ Actualiza el estado local también (opcional si ya usas updatedUser en la UI)
+    setUserProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            email,
+            phone,
+            avatar: selectedAvatarUrl ?? '',
+            photo_profile_url: selectedAvatarUrl ?? '',
+          }
+        : null
+    );
+
+    setHasChanges(false);
+    Alert.alert('Éxito', 'Perfil actualizado correctamente.');
+  } catch (error) {
+    console.error("Error saving profile:", error);
+    Alert.alert('Error', 'No se pudieron guardar los cambios.');
+  } finally {
+    setSaving(false);
+  }
+};
+
+
 
   if (loading) {
     return (
@@ -208,9 +235,10 @@ export default function UserAccountScreen() {
           {/* Avatar section with edit icon */}
           <View style={styles.avatarContainer}>
             <Image
-              source={avatar ? { uri: avatar } : null}
-              style={styles.avatar}
-            />
+  source={selectedAvatarUrl ? { uri: selectedAvatarUrl } : null}
+  style={styles.avatar}
+/>
+
             <TouchableOpacity
               style={styles.editIcon}
               onPress={() => setShowAvatarPicker(!showAvatarPicker)} // Toggle picker visibility

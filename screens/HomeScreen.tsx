@@ -9,7 +9,6 @@ import {
   StatusBar,
   Image,
   Dimensions,
-  ActivityIndicator,
   Vibration,
   Animated,
   Easing,
@@ -20,16 +19,14 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 
 const { width } = Dimensions.get("window");
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const [sosActive, setSosActive] = useState(false);
   const pulseAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
-  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
-  const resetTimer = useRef(null);
+  const resetTimer = useRef<NodeJS.Timeout | null>(null);
   const activeUsers = 52;
   const router = useRouter();
 
@@ -41,23 +38,6 @@ export default function HomeScreen() {
     return "Usuario";
   };
 
-
-  useEffect(() => {
-    const checkPolicyAgreement = async () => {
-      const accepted = await AsyncStorage.getItem("policyAccepted");
-      if (accepted !== "true") {
-        setShowPolicyModal(true);
-      }
-    };
-    checkPolicyAgreement();
-    console.log(user)
-
-    return () => {
-      if (resetTimer.current) {
-        clearTimeout(resetTimer.current);
-      }
-    };
-  }, []);
 
   // Animación de pulso cuando está activo
   useEffect(() => {
@@ -140,12 +120,14 @@ export default function HomeScreen() {
   const [timeLeft, setTimeLeft] = useState(10);
 
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval> | null;
     if (sosActive) {
       interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            clearInterval(interval);
+            if (interval) {
+              clearInterval(interval);
+            }
             return 0;
           }
           return prev - 1;
@@ -154,7 +136,11 @@ export default function HomeScreen() {
     } else {
       setTimeLeft(10);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
   }, [sosActive]);
 
   return (
