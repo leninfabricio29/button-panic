@@ -86,5 +86,24 @@ export const neighborhoodService = {
       console.error('Error al obtener barrio:', error);
       throw error;
     }
+  },
+
+  async exitNeighborhood(neighborhoodId: string, userId: string) {
+    try {
+      const token = await AsyncStorage.getItem('auth-token');
+      if (!token) {
+        throw new Error('No se encontró token');
+      }
+
+       const response = await api.delete(`/neighborhood/${neighborhoodId}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+            return response.data;
+
+    } catch (error) {
+      console.log("Error, error presentado",error)
+    }
   }
 };

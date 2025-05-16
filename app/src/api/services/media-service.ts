@@ -25,5 +25,55 @@ export const mediaService = {
             console.error('Error al obtener los paquetes de avatars', error);
             throw error;
         }
+    },
+
+    async getPackagesAdvertising() {
+        try {
+            const token = await AsyncStorage.getItem('auth-token');
+            if (!token) {
+                throw new Error('No se encontró token');
+            }
+            
+            const response = await api.get('/media/packages/list', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            
+            // Filtrar los paquetes de tipo publicidad y status true
+            const dataResponse = response.data.filter((item: any) => item.type === 'publicidad' && item.status === true);
+            
+            // Asegurar que se retorne el resultado para que pueda ser utilizado en el componente
+            return dataResponse;
+            
+        } catch (error) {
+            console.error('Error al obtener los paquetes de publicidad', error);
+            throw error;
+        }
+    }
+    ,
+    async getPackagesNeigborhood(){
+  try {
+            const token = await AsyncStorage.getItem('auth-token');
+            if (!token) {
+                throw new Error('No se encontró token');
+            }
+            
+            const response = await api.get('/media/packages/list', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            
+            // Filtrar los paquetes de tipo publicidad y status true
+            const dataResponse = response.data.filter((item: any) => item.type === 'barrio' && item.status === true);
+            
+            // Asegurar que se retorne el resultado para que pueda ser utilizado en el componente
+            return dataResponse;
+            
+        } catch (error) {
+            console.error('Error al obtener los paquetes de barrios', error);
+            throw error;
+        }
     }
 }

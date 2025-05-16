@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AppHeader from "@/components/AppHeader";
 import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
+import { mediaService } from "@/app/src/api/services/media-service";
 
 const { width } = Dimensions.get("window");
 
@@ -28,6 +29,7 @@ export default function HomeScreen() {
 
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
   const activeUsers = 52;
+  const [adsImages, setAdsImages] = useState<string[]>([]);
   const router = useRouter();
 
   // Función para obtener nombre de usuario para mostrar
@@ -39,6 +41,22 @@ export default function HomeScreen() {
   };
 
 
+  useEffect(() => {
+  const fetchAds = async () => {
+    try {
+      const adsPackages = await mediaService.getPackagesAdvertising();
+      // Extraer todas las imágenes de todos los paquetes
+      const allImages = adsPackages.flatMap((pkg: any) =>
+        pkg.images.map((img: any) => img.url)
+      );
+      setAdsImages(allImages);
+    } catch (error) {
+      console.error("Error al cargar publicidad:", error);
+    }
+  };
+
+  fetchAds();
+}, []);
   // Animación de pulso cuando está activo
   useEffect(() => {
     if (sosActive) {
@@ -279,34 +297,17 @@ export default function HomeScreen() {
 
         {/* Promociones */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Promociones</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.promoCard}>
-              <Image
-                source={{
-                  uri: "https://cablefamilia.com/wp-content/uploads/2024/05/movil.png",
-                }}
-                style={styles.promoImage}
-              />
-              <Text style={styles.promoTitle}>Nuevo Plan</Text>
-              <Text style={styles.promoText}>
-                Conoce nuestro plan familiar con nuevos beneficios.
-              </Text>
-            </View>
-            <View style={styles.promoCard}>
-              <Image
-                source={{
-                  uri: "https://pbs.twimg.com/media/FOJwku0WQAQS1z6.jpg",
-                }}
-                style={styles.promoImage}
-              />
-              <Text style={styles.promoTitle}>Seguridad Avanzada</Text>
-              <Text style={styles.promoText}>
-                Nuestras nuevas funciones de seguridad ya están aquí.
-              </Text>
-            </View>
-          </ScrollView>
-        </View>
+  <Text style={styles.sectionTitle}>Publicidad</Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    {adsImages.map((url, index) => (
+      <Image
+        key={index}
+        source={{ uri: url }}
+        style={styles.promoImageOnly}
+      />
+    ))}
+  </ScrollView>
+</View>
 
         {/* Estadísticas */}
         <View style={styles.section}>
@@ -488,4 +489,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: "center",
   },
+  promoImageOnly: {
+  width: width * 0.7,
+  height: 120,
+  borderRadius: 12,
+  marginRight: 16,
+  backgroundColor: "#e0f7fa",
+}
+
 });

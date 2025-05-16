@@ -18,49 +18,60 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../app/context/AuthContext'; // Make sure to adjust this path
 
 import { neighborhoodService } from '../app/src/api/services/neighborhood-service';
-
+import { mediaService } from '@/app/src/api/services/media-service';
 const { width } = Dimensions.get('window');
 
-// Imágenes de barrios para mostrar variedad
-const neighborhoodImages = [
-  'https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg'
 
-];
 
 export default function NeighborhoodScreen() {
   const [loading, setLoading] = useState(true);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [sendingRequest, setSendingRequest] = useState(false);
+const [neighborhoodImages, setNeighborhoodImages] = useState<string[]>([]);
 
 
   const { user } = useAuth();
 
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // Paso 1: obtener imágenes
+      const packages = await mediaService.getPackagesNeigborhood();
+      const allImages = packages.flatMap((pkg) =>
+        pkg.images.map((img) => img.url)
+      );
 
-  
+      console.log("paquetes", packages)
+      setNeighborhoodImages(allImages);
 
-  useEffect(() => {
-    const fetchNeighborhoods = async () => {
-      try {
-        const data = await neighborhoodService.getAllNeighborhoods();
-        console.log('Barrios:', data);
-        
-        // Añadimos una imagen aleatoria a cada barrio
-        const enhancedData = data.map((item, index) => ({
+      // Paso 2: obtener barrios
+      const data = await neighborhoodService.getAllNeighborhoods();
+
+      // Paso 3: asignar imagen aleatoria a cada barrio
+      const enhancedData = data.map((item) => {
+        const randomImage =
+          allImages[Math.floor(Math.random() * allImages.length)];
+
+        return {
           ...item,
-          imageUrl: neighborhoodImages[index % neighborhoodImages.length]
-        }));
-        
-        setNeighborhoods(enhancedData);
-      } catch (error) {
-        console.error('Error cargando barrios:', error);
-        Alert.alert('Error', 'No se pudieron cargar los barrios.');
-      } finally {
-        setLoading(false);
-      }
-    };
+          imageUrl: randomImage,
+        };
+      });
 
-    fetchNeighborhoods();
-  }, []);
+      setNeighborhoods(enhancedData);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      Alert.alert("Error", "No se pudieron cargar los datos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
+
+
 
   const handleJoinNeighborhood = async (item) => {
     Alert.alert(
@@ -126,7 +137,7 @@ export default function NeighborhoodScreen() {
           <Text style={styles.name}>{item.name}</Text>
           <View style={styles.memberCounter}>
             <Ionicons name="people" size={16} color="#01579b" />
-            <Text style={styles.memberCount}>{item.memberCount || Math.floor(Math.random() * 50) + 10}</Text>
+            <Text style={styles.memberCount}>{item.memberCount }</Text>
           </View>
         </View>
         
