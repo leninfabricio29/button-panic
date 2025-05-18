@@ -72,7 +72,7 @@ const UserAccountScreen = () => {
     }
   };
 
-  const fetchNeighborhoodsDetails = async (id) => {
+  const fetchNeighborhoodsDetails = async (id: any) => {
     try {
       if (!id) {
         setHasNeighborhood(false);
@@ -173,7 +173,7 @@ const UserAccountScreen = () => {
       >
         <StatusBar barStyle="light-content" backgroundColor="#01579b" />
         <View style={styles.headerBackground} />
-        <AppHeader title="Mi comunidad" showBack textColor="#ffffff" />
+        <AppHeader title="Mi comunidad" showBack  />
         <View style={styles.noNeighborhoodContainer}>
           <View style={styles.iconContainer}>
             <Ionicons name="home-outline" size={80} color="#CCCCCC" />

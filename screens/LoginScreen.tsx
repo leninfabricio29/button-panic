@@ -21,12 +21,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PolicyModal from '@/components/PolicyModal';
 import { fcmService } from '@/app/src/api/services/panic-service';
 import messaging from '@react-native-firebase/messaging';
-import ImageModal from '../components/ImageModal';
+//import ImageModal from '../components/ImageModal';
 
-const LOCAL_IMAGES = [
-  require('../assets/images/logo.jpg'),
-  require('../assets/images/splash-icon.png'),
-];
+
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,29 +32,14 @@ export default function LoginScreen() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [showImage, setShowImage] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+ 
 
   const { login } = useAuth();
 
-  const checkShowImage = () => {
-    const randomNumber = Math.floor(Math.random() * 5) + 1; // Número aleatorio entre 1 y 5
-    
-    if (randomNumber % 2 === 0) { // Si es par
-      const randomImageIndex = Math.floor(Math.random() * LOCAL_IMAGES.length);
-      setSelectedImage(LOCAL_IMAGES[randomImageIndex]);
-      setShowImage(true);
-    }
-  };
+ 
 
-  useEffect(() => {
-    checkShowImage();
-    console.log('showImage:', selectedImage);
-  }, []);
 
-  const handleCloseImage = () => {
-    setShowImage(false);
-  };
+ 
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -125,12 +107,12 @@ export default function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            {/* <Image
-              source={require('../assets/images/logo.png')}
+            { <Image
+              source={require('../assets/images/icon.png')}
               style={styles.logo}
               resizeMode="contain"
-            /> */}
-            <Text style={styles.title}>SafeGuard</Text>
+            /> }
+            <Text style={styles.title}>Viryx SOS</Text>
             <Text style={styles.subtitle}>Seguridad a un toque de distancia</Text>
           </View>
 
@@ -225,11 +207,6 @@ export default function LoginScreen() {
       <PolicyModal
         visible={showPolicyModal}
         onAccept={() => setShowPolicyModal(false)}
-      />
-      <ImageModal
-        visible={showImage}
-        onClose={handleCloseImage}
-        imageSource={selectedImage}
       />
     </SafeAreaView>
   );
