@@ -19,6 +19,9 @@ import AppHeader from "@/components/AppHeader";
 import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 import { mediaService } from "@/app/src/api/services/media-service";
+import { fcmService } from "@/app/src/api/services/panic-service";
+import Geolocation from '@react-native-community/geolocation';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 const { width } = Dimensions.get("window");
 
@@ -29,7 +32,7 @@ export default function HomeScreen() {
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
-  const activeUsers = 52;
+  const activeUsers = 20;
   const [adsImages, setAdsImages] = useState<string[]>([]);
   const router = useRouter();
 
@@ -39,6 +42,34 @@ export default function HomeScreen() {
 
   const [showAdModal, setShowAdModal] = useState(false);
   const [randomAdImage, setRandomAdImage] = useState<string | null>(null);
+
+
+  const getCurrentLocation = async (): Promise<string[] | null> => {
+  if (Platform.OS === 'android') {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+    );
+    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      console.warn('Permiso de ubicación denegado');
+      return null;
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        resolve([longitude.toString(), latitude.toString()]);
+      },
+      error => {
+        console.error("Error obteniendo ubicación", error);
+        reject(null);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  });
+};
+
 
 const showRandomAd = () => {
   if (pubImages.length === 0) return;
@@ -107,7 +138,7 @@ const showRandomAd = () => {
       // Configurar el temporizador para resetear después de 30 segundos
       resetTimer.current = setTimeout(() => {
         setSosActive(false);
-      }, 10000); // 30 segundos
+      }, 4000); // 30 segundos
     } else {
       pulseAnim.setValue(0);
       if (resetTimer.current) {
@@ -117,38 +148,52 @@ const showRandomAd = () => {
     }
   }, [sosActive]);
 
-  const handlePress = () => {
-    // Si ya está activo, no hacer nada
-    if (sosActive) return;
+  const handlePress = async () => {
+  if (sosActive) return;
 
-    // Animación de shake
-    Animated.sequence([
-      Animated.timing(shakeAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shakeAnim, {
-        toValue: -1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shakeAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shakeAnim, {
-        toValue: 0,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  setSosActive(true); // Activar botón
+  Vibration.vibrate([500, 200, 500]);
 
-    // Vibración y activación
-    Vibration.vibrate([500, 200, 500]);
-    setSosActive(true);
-  };
+  // Animación de shake
+  Animated.sequence([
+    Animated.timing(shakeAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: -1,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+    Animated.timing(shakeAnim, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+  ]).start();
+
+  try {
+    const coords = await getCurrentLocation();
+    if (!coords) throw new Error("No se pudo obtener ubicación");
+
+    await fcmService.sendAlarm(coords);
+    console.log("✅ Alerta enviada correctamente");
+  } catch (error) {
+    console.error("❌ Error al enviar alerta:", error);
+  } finally {
+    // Espera 3 segundos antes de apagar animación
+    setTimeout(() => {
+      setSosActive(false);
+    }, 3000);
+  }
+};
+
 
   // Interpolaciones
   const pulseScale = pulseAnim.interpolate({
@@ -342,7 +387,7 @@ const showRandomAd = () => {
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <Ionicons name="people" size={24} color="#01579b" />
-              <Text style={styles.statValue}>{activeUsers}</Text>
+              <Text style={styles.statValue}>+ {activeUsers}</Text>
               <Text style={styles.statLabel}>Usuarios activos</Text>
             </View>
             <View style={styles.statCard}>

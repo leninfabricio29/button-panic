@@ -35,7 +35,7 @@ export const fcmService = {
       }
 
       const response = await api.post(
-        '/users/token', // <-- ajusta si tu ruta real es diferente
+        '/panic/alerta', // <-- ajusta si tu ruta real es diferente
         { coordinates },
         {
           headers: {
@@ -43,6 +43,8 @@ export const fcmService = {
           },
         }
       );
+
+      console.log('Response from sendAlarm:', response.data);
 
       return response;
 
