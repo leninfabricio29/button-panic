@@ -216,7 +216,7 @@ const UsersListScreen = () => {
               color={isFocusedInput ? "#007AFF" : "#aaa"}
             />
             <TextInput
-              placeholder="Buscar..."
+              placeholder="Buscar por nombre o teléfono"
               value={searchQuery}
               onChangeText={handleSearch}
               style={[
@@ -224,7 +224,7 @@ const UsersListScreen = () => {
                 isFocusedInput && styles.searchInputFocused,
               ]}
               placeholderTextColor="#999"
-              cursorColor="#007AFF"
+              //cursorColor="#007AFF"
               selectionColor="#007AFF20"
               includeFontPadding={false}
               textAlignVertical="center"

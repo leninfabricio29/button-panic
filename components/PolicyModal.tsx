@@ -8,8 +8,8 @@ export default function PolicyModal({ visible, onAccept }: { visible: boolean; o
         <View style={styles.modalContent}>
           <Text style={styles.title}>Acuerdo de políticas</Text>
           <Text style={styles.body}>
-            La aplicación SafeGuard ha sido desarrollada por Softkilla y es propiedad exclusiva de Viored.{"\n\n"}
-            Queda estrictamente prohibida cualquier reproducción, distribución, modificación o uso no autorizado del software, incluyendo pero no limitado a copias, imitaciones o ingeniería inversa.{"\n\n"}
+            La aplicación Viryx SOS ha sido desarrollada por Softkilla y es propiedad exclusiva de Viryx.{"\n\n"}
+            Queda estrictamente prohibida cualquier reproducción, distribución, modificación o uso no autorizado del software, copias, imitaciones o ingeniería inversa.{"\n\n"}
             Este producto se encuentra protegido por las leyes de derechos de autor y propiedad intelectual vigentes.{"\n\n"}
             Al continuar, aceptas cumplir con estas condiciones.
           </Text>

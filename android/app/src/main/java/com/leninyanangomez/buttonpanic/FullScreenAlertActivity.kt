@@ -16,6 +16,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
+
 
 class FullScreenAlertActivity : Activity() {
     private var mediaPlayer: MediaPlayer? = null
@@ -41,6 +43,10 @@ class FullScreenAlertActivity : Activity() {
             // Obtener coordenadas
             val lat = intent.getStringExtra("lat") ?: "0.0"
             val lon = intent.getStringExtra("lon") ?: "0.0"
+            val senderName = intent.getStringExtra("senderName") ?: "Desconocido"
+            val customFont = ResourcesCompat.getFont(this, R.font.latobold)
+
+
             Log.d(TAG, "Coordenadas recibidas: $lat, $lon")
             
             // Crear layout principal
@@ -66,7 +72,23 @@ class FullScreenAlertActivity : Activity() {
                 )
             }
             mainLayout.addView(alertTitle)
-            
+            alertTitle.typeface = customFont
+            //Nombre del emisor
+            // Nombre del emisor
+         val senderText = TextView(this).apply {
+            text = "Emitido por: $senderName"
+                setTextColor(Color.WHITE)
+                textSize = 18f
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                setPadding(20, 0, 20, 20)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+            mainLayout.addView(senderText)
+            senderText.typeface = customFont
+
             // Crear WebView para el mapa
             val mapUrl = "https://www.google.com/maps?q=$lat,$lon"
             Log.d(TAG, "Cargando URL del mapa: $mapUrl")
@@ -126,20 +148,18 @@ class FullScreenAlertActivity : Activity() {
     }
     
     private fun playAlarm() {
-        try {
-            val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(applicationContext, alarmUri)
-                isLooping = true
-                prepare()
-                start()
-            }
-            Log.d(TAG, "Reproducción de alarma iniciada")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error al reproducir alarma: ${e.message}")
-            e.printStackTrace()
+    try {
+        mediaPlayer = MediaPlayer.create(this, R.raw.alarm) // usa el nombre de tu archivo sin extensión
+        mediaPlayer?.apply {
+            isLooping = true
+            start()
         }
+        Log.d(TAG, "Reproducción de sonido personalizado iniciada")
+    } catch (e: Exception) {
+        Log.e(TAG, "Error al reproducir sonido personalizado: ${e.message}")
+        e.printStackTrace()
     }
+}
     
     private fun startVibration() {
         vibrationHandler = Handler(Looper.getMainLooper())

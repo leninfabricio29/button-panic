@@ -30,7 +30,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Inicio',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
             name={ 'home-outline'}
@@ -70,7 +70,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Configu.',
+          title: 'Configuraciones',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={ 'settings-outline'}

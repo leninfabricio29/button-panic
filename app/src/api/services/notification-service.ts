@@ -15,5 +15,16 @@ export const notifyService = {
         throw error;
       }
     },
+
+   async getNotificationsByUserId(userId: string) {
+  try {
+    const response = await api.get(`/notify/all/${userId}`); // ← corregido
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener las notificaciones:', error);
+    throw error;
+  }
+}
   };
+
   

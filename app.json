@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Viryx SOS",
-    "slug": "biryx-sos",
+    "slug": "viryx-sos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

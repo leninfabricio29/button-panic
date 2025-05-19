@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,60 +7,78 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  ListRenderItem,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AppHeader from '@/components/AppHeader';
 import moment from 'moment';
+import { notifyService } from '../src/api/services/notification-service';
+import { useAuth } from '../context/AuthContext';
 
 interface Notification {
   _id: string;
   title: string;
   message: string;
-  createdAt: Date;
+  createdAt: string;
   emitter: string;
   receiver: string;
 }
 
-const userId = 'user123';
-
-const notifications: Notification[] = [
-  {
-    _id: '1',
-    title: 'Alerta de emergencia',
-    message: 'Una persona ha presionado el botón de pánico.',
-    createdAt: new Date(),
-    emitter: 'user456',
-    receiver: 'user123',
-  },
-  {
-    _id: '2',
-    title: 'Botón presionado',
-    message: 'Has activado una alerta de emergencia.',
-    createdAt: new Date(),
-    emitter: 'user123',
-    receiver: 'user456',
-  },
-];
-
 const filterOptions = [
   { label: 'Todas', value: 'todas' },
-  { label: 'Recibidas', value: 'recibida' },
-  { label: 'Emitidas', value: 'emitida' },
+  { label: 'Hoy', value: 'hoy' },
+  { label: 'Esta semana', value: 'semana' },
 ];
 
-
-
 const NotificationsScreen = () => {
-  const [filterType, setFilterType] = useState<string>('todas');
-  const [filterDate, setFilterDate] = useState<string>('todas');
+  const { user } = useAuth();
+  const userId = user._id;
 
-  const renderItem: ListRenderItem<Notification> = ({ item }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState('todas');
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await notifyService.getNotificationsByUserId(userId);
+        setNotifications(data);
+      } catch (error) {
+        console.error('Error al obtener las notificaciones:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [userId]);
+
+  const filteredNotifications = notifications.filter((n) => {
+  const createdAt = new Date(n.createdAt);
+  const now = new Date();
+
+  if (filterType === 'hoy') {
+    return (
+      createdAt.getDate() === now.getDate() &&
+      createdAt.getMonth() === now.getMonth() &&
+      createdAt.getFullYear() === now.getFullYear()
+    );
+  }
+
+  if (filterType === 'semana') {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(now.getDate() - 7);
+    return createdAt >= oneWeekAgo;
+  }
+
+  return true; // 'todas'
+});
+
+
+  const renderItem = ({ item }: { item: Notification }) => {
     const isOwn = item.emitter === userId;
     const borderColor = isOwn ? '#ff6b6b' : '#32d6a6';
-    const message = isOwn
-      ? 'Has presionado el botón de pánico.'
-      : item.message;
+    const message = isOwn ? 'Has presionado el botón de pánico.' : item.message;
 
     return (
       <View style={[styles.notificationItem, { borderLeftColor: borderColor }]}>
@@ -102,15 +120,19 @@ const NotificationsScreen = () => {
         {filterOptions.map(({ label, value }) =>
           renderCustomChip(label, value, filterType, setFilterType)
         )}
-        
       </ScrollView>
 
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#01579b" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={filteredNotifications}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No hay notificaciones</Text>}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -119,37 +141,38 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   filters: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 10,
+  },
+ chip: {
+  paddingVertical: 4,
+  paddingHorizontal: 10,
+  borderRadius: 16,
+  backgroundColor: '#fff',
+  marginRight: 8,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  height: 32,
+  justifyContent: 'center',
+},
+chipSelected: {
+  backgroundColor: '#01579b',
+  borderColor: '#01579b',
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  elevation: 4,
+},
+chipText: {
+  color: '#5c4033',
+  fontSize: 14,
+  textAlign: 'center',
+},
+chipTextSelected: {
+  color: 'white',
+  fontWeight: 'bold',
+},
 
-  },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-  },
-  chipSelected: {
-    backgroundColor: '#01579b',
-    borderColor: '#01579b',
-  },
-  chipText: {
-    color: '#5c4033',
-    fontSize: 14,
-  },
-  chipTextSelected: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
   list: {
     padding: 12,
   },

@@ -12,10 +12,12 @@ import {
   Vibration,
   Animated,
   Easing,
-  Modal
+  Modal,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppHeader from "@/components/AppHeader";
+
 import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 import { mediaService } from "@/app/src/api/services/media-service";
@@ -184,7 +186,9 @@ const showRandomAd = () => {
 
     await fcmService.sendAlarm(coords);
     console.log("✅ Alerta enviada correctamente");
+    Alert.alert("Alerta enviada", "Tu alerta SOS ha sido enviada correctamente.");
   } catch (error) {
+    Alert.alert("Error", "No se pudo enviar la alerta. Inténtalo de nuevo.");
     console.error("❌ Error al enviar alerta:", error);
   } finally {
     // Espera 3 segundos antes de apagar animación
@@ -238,7 +242,7 @@ const showRandomAd = () => {
       <StatusBar barStyle="light-content" backgroundColor="#01579b" />
 
       <AppHeader
-        title="SafeGuard"
+        title="Viryx SOS"
         showBack={false}
         rightIcon="settings-outline"
         onRightPress={() => console.log("Settings")}

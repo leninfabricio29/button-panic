@@ -31,6 +31,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             ?: remoteMessage.data["lon"] 
             ?: remoteMessage.data["Longitude"]
             ?: remoteMessage.data["LON"]
+
+    val senderName = remoteMessage.data["sender_name"]
+            ?: remoteMessage.data["senderName"]
+            ?: remoteMessage.data["sender"]
+            ?: remoteMessage.data["Sender"]
     
     // Detectar mensaje de emergencia
     val isEmergency = remoteMessage.data["type"]?.equals("emergencia", ignoreCase = true) ?: false
@@ -43,19 +48,19 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
     
     // Procesar si es emergencia y tenemos coordenadas
-    if (isEmergency && !lat.isNullOrEmpty() && !lon.isNullOrEmpty()) {
+    if (isEmergency && !lat.isNullOrEmpty() && !lon.isNullOrEmpty() && senderName != null) {
         Log.d(TAG, "Procesando notificación de emergencia")
         
         // Siempre crear y mostrar nuestra propia notificación personalizada
         // Incluso si hay una notificación del sistema, mostraremos la nuestra
-        showCustomEmergencyNotification(lat, lon, remoteMessage)
+        showCustomEmergencyNotification(lat, lon,  senderName, remoteMessage)
     } else {
         // Si no es emergencia o no podemos procesarla, dejamos que el sistema la maneje
         Log.d(TAG, "Mensaje FCM recibido pero no es una emergencia o faltan coordenadas")
     }
 }
 
-private fun showCustomEmergencyNotification(lat: String, lon: String, remoteMessage: RemoteMessage) {
+private fun showCustomEmergencyNotification(lat: String, lon: String ,senderName: String, remoteMessage: RemoteMessage) {
     // Despertar pantalla
     wakeLockScreen()
     
@@ -63,6 +68,7 @@ private fun showCustomEmergencyNotification(lat: String, lon: String, remoteMess
     val intent = Intent(this, FullScreenAlertActivity::class.java).apply {
         putExtra("lat", lat)
         putExtra("lon", lon)
+        putExtra("senderName", senderName)
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
                 Intent.FLAG_ACTIVITY_CLEAR_TOP or
                 Intent.FLAG_ACTIVITY_CLEAR_TASK

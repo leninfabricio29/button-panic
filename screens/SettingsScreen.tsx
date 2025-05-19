@@ -35,11 +35,7 @@ const SettingsScreen = () => {
       label: "Cambiar contraseña",
       onPress: () => router.push("settings/change-password"),
     },
-    {
-      icon: "settings-outline",
-      label: "Configurar Central alarmas",
-      onPress: () => Alert.alert("Configurar notificaciones"),
-    },
+
     {
       icon: "log-out-outline",
       label: "Cerrar sesión",
