@@ -25,127 +25,129 @@ class FullScreenAlertActivity : Activity() {
     private var vibrationHandler: Handler? = null
     private var vibrationRunnable: Runnable? = null
     
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
-        try {
-            Log.d(TAG, "Iniciando actividad de pantalla completa")
-            
-            // Configurar ventana para pantalla completa y activarse sobre el bloqueo de pantalla
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
+   override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    try {
+        Log.d(TAG, "Iniciando actividad de pantalla completa")
+
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+
+        val lat = intent.getStringExtra("lat") ?: "0.0"
+        val lon = intent.getStringExtra("lon") ?: "0.0"
+        val senderName = intent.getStringExtra("senderName") ?: "Desconocido"
+        val customFont = ResourcesCompat.getFont(this, R.font.latobold)
+
+        Log.d(TAG, "Coordenadas recibidas: $lat, $lon")
+
+        // MAIN LAYOUT
+        val mainLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.parseColor("#F5F5F5")) // gris claro
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
-            
-            // Obtener coordenadas
-            val lat = intent.getStringExtra("lat") ?: "0.0"
-            val lon = intent.getStringExtra("lon") ?: "0.0"
-            val senderName = intent.getStringExtra("senderName") ?: "Desconocido"
-            val customFont = ResourcesCompat.getFont(this, R.font.latobold)
-
-
-            Log.d(TAG, "Coordenadas recibidas: $lat, $lon")
-            
-            // Crear layout principal
-            val mainLayout = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setBackgroundColor(Color.RED)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT
-                )
-            }
-            
-            // Título de alerta
-            val alertTitle = TextView(this).apply {
-                text = "¡¡ALERTA DE EMERGENCIA!!"
-                setTextColor(Color.WHITE)
-                textSize = 24f
-                textAlignment = View.TEXT_ALIGNMENT_CENTER
-                setPadding(20, 40, 20, 40)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-            mainLayout.addView(alertTitle)
-            alertTitle.typeface = customFont
-            //Nombre del emisor
-            // Nombre del emisor
-         val senderText = TextView(this).apply {
-            text = "Emitido por: $senderName"
-                setTextColor(Color.WHITE)
-                textSize = 18f
-                textAlignment = View.TEXT_ALIGNMENT_CENTER
-                setPadding(20, 0, 20, 20)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-            mainLayout.addView(senderText)
-            senderText.typeface = customFont
-
-            // Crear WebView para el mapa
-            val mapUrl = "https://www.google.com/maps?q=$lat,$lon"
-            Log.d(TAG, "Cargando URL del mapa: $mapUrl")
-            
-            val webView = WebView(this).apply {
-                settings.javaScriptEnabled = true
-                webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        Log.d(TAG, "Mapa cargado correctamente")
-                    }
-                }
-                loadUrl(mapUrl)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0
-                ).apply {
-                    weight = 1f
-                }
-            }
-            mainLayout.addView(webView)
-            
-            // Botón para cerrar la alerta
-            val closeButton = Button(this).apply {
-                text = "Entendido"
-                textSize = 18f
-                setBackgroundColor(Color.WHITE)
-                setTextColor(Color.RED)
-                setPadding(20, 30, 20, 30)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(40, 20, 40, 40)
-                }
-                setOnClickListener {
-                    Log.d(TAG, "Botón Entendido presionado")
-                    stopAlarm()
-                    finish()
-                }
-            }
-            mainLayout.addView(closeButton)
-            
-            setContentView(mainLayout)
-            
-            // Reproducir sonido de alarma
-            playAlarm()
-            
-            // Iniciar vibración periódica
-            startVibration()
-            
-            Log.d(TAG, "Actividad de pantalla completa inicializada correctamente")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error en onCreate: ${e.message}")
-            e.printStackTrace()
+            setPadding(30, 30, 30, 30)
         }
+
+        // HEADER (barra roja)
+        val headerLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val alertTitle = TextView(this).apply {
+            text = "¡¡ALERTA DE EMERGENCIA!!"
+            setTextColor(Color.RED)
+            textSize = 24f
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            setPadding(20, 40, 20, 20)
+            typeface = customFont
+        }
+
+        val senderText = TextView(this).apply {
+            text = "Emitido por: $senderName"
+            setTextColor(Color.RED)
+            textSize = 18f
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            setPadding(20, 0, 20, 20)
+            typeface = customFont
+        }
+
+        headerLayout.addView(alertTitle)
+        headerLayout.addView(senderText)
+        mainLayout.addView(headerLayout)
+
+        // MAPA (WebView)
+        val mapUrl = "https://www.google.com/maps/search/?api=1&query=$lat,$lon"
+        Log.d(TAG, "Cargando URL del mapa: $mapUrl")
+
+        val webView = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    Log.d(TAG, "Mapa cargado correctamente")
+                }
+            }
+            loadUrl(mapUrl)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0
+            ).apply {
+                weight = 1f
+                setMargins(0, 20, 0, 20)
+            }
+            background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_map, null)
+            clipToOutline = true
+        }
+
+        mainLayout.addView(webView)
+
+        // BOTÓN ENTENDIDO
+        val closeButton = Button(this).apply {
+            text = "ENTENDIDO"
+            textSize = 18f
+            setTextColor(Color.WHITE)
+            background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_button, null)
+            setPadding(30, 30, 30, 30)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(20, 20, 20, 40)
+            }
+            setOnClickListener {
+                Log.d(TAG, "Botón Entendido presionado")
+                stopAlarm()
+                finish()
+            }
+        }
+
+        mainLayout.addView(closeButton)
+
+        setContentView(mainLayout)
+        playAlarm()
+        startVibration()
+
+        Log.d(TAG, "Actividad de pantalla completa inicializada correctamente")
+    } catch (e: Exception) {
+        Log.e(TAG, "Error en onCreate: ${e.message}")
+        e.printStackTrace()
     }
+}
+
     
     private fun playAlarm() {
     try {

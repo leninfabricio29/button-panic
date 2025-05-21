@@ -11,13 +11,12 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.leninyanangomez.buttonpanic"
-    },
+   "android": {
+  "icon": "./assets/images/icon.png",
+  "package": "com.leninyanangomez.buttonpanic"
+}
+
+,
     "web": {
       "bundler": "metro",
       "output": "static",

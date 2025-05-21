@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
   TextInput,
   ActivityIndicator,
   Alert,
@@ -226,7 +225,7 @@ const UsersListScreen = () => {
               placeholderTextColor="#999"
               //cursorColor="#007AFF"
               selectionColor="#007AFF20"
-              includeFontPadding={false}
+              //includeFontPadding={false}
               textAlignVertical="center"
               onFocus={() => setIsFocusedInput(true)}
               onBlur={() => setIsFocusedInput(false)}
