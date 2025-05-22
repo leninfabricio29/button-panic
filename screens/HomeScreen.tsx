@@ -22,8 +22,8 @@ import { useRouter } from "expo-router";
 import { useAuth } from "../app/context/AuthContext";
 import { mediaService } from "@/app/src/api/services/media-service";
 import { fcmService } from "@/app/src/api/services/panic-service";
-import Geolocation from '@react-native-community/geolocation';
-import { PermissionsAndroid, Platform } from 'react-native';
+import * as Location from 'expo-location'; // ✅ nuevo import
+//import { PermissionsAndroid, Platform } from 'react-native';
 
 const { width } = Dimensions.get("window");
 
@@ -46,31 +46,28 @@ export default function HomeScreen() {
   const [randomAdImage, setRandomAdImage] = useState<string | null>(null);
 
 
-  const getCurrentLocation = async (): Promise<string[] | null> => {
-  if (Platform.OS === 'android') {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-    );
-    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-      console.warn('Permiso de ubicación denegado');
+ const getCurrentLocation = async (): Promise<string[] | null> => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso de ubicación denegado', 'Debes permitir acceso a la ubicación para usar el botón SOS.');
       return null;
     }
-  }
 
-  return new Promise((resolve, reject) => {
-    Geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        resolve([longitude.toString(), latitude.toString()]);
-      },
-      error => {
-        console.error("Error obteniendo ubicación", error);
-        reject(null);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
-  });
+    const location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Highest,
+      timeout: 30000, // más tiempo para obtener ubicación precisa
+    });
+
+    const { latitude, longitude } = location.coords;
+    return [longitude.toString(), latitude.toString()];
+  } catch (error) {
+    console.error("❌ Error obteniendo ubicación:", error);
+    Alert.alert('Error', 'No se pudo obtener tu ubicación. Asegúrate de tener buena señal GPS.');
+    return null;
+  }
 };
+
 
 
 const showRandomAd = () => {
