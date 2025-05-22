@@ -215,7 +215,7 @@ const UsersListScreen = () => {
               color={isFocusedInput ? "#007AFF" : "#aaa"}
             />
             <TextInput
-              placeholder="Buscar por nombre o teléfono"
+              placeholder="Buscar por nombre o telaéfono"
               value={searchQuery}
               onChangeText={handleSearch}
               style={[
@@ -226,9 +226,9 @@ const UsersListScreen = () => {
               //cursorColor="#007AFF"
               selectionColor="#007AFF20"
               //includeFontPadding={false}
-              textAlignVertical="center"
-              onFocus={() => setIsFocusedInput(true)}
-              onBlur={() => setIsFocusedInput(false)}
+              //textAlignVertical="center"
+              //onFocus={() => setIsFocusedInput(true)}
+              //onBlur={() => setIsFocusedInput(false)}
             />
           </View>
           <View style={styles.limitContainer}>
@@ -264,36 +264,37 @@ const UsersListScreen = () => {
           </View>
 
           <FlatList
-            data={visibleUsers}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.usersList}
-            renderItem={({ item }) => (
-              <View style={styles.userItemContainer}>
-                <View
-                  style={[
-                    styles.avatar,
-                    { backgroundColor: getAvatarColor(item._id) },
-                  ]}
-                >
-                  <Text style={styles.avatarText}>
-                    {getInitials(item.name)}
-                  </Text>
-                </View>
-                <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{item.name}</Text>
-                  <Text style={styles.userDetail}>{item.phone}</Text>
-                </View>
-                {renderAddButton(item._id)}
-              </View>
-            )}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyResults}>
-                <Text style={styles.emptyResultsText}>No hay usuarios</Text>
-              </View>
-            )}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-          />
+  data={visibleUsers.filter(user => user.role !== 'admin')}
+  keyExtractor={(item) => item._id}
+  contentContainerStyle={styles.usersList}
+  renderItem={({ item }) => (
+    <View style={styles.userItemContainer}>
+      <View
+        style={[
+          styles.avatar,
+          { backgroundColor: getAvatarColor(item._id) },
+        ]}
+      >
+        <Text style={styles.avatarText}>
+          {getInitials(item.name)}
+        </Text>
+      </View>
+      <View style={styles.userInfo}>
+        <Text style={styles.userName}>{item.name}</Text>
+        <Text style={styles.userDetail}>{item.phone}</Text>
+      </View>
+      {renderAddButton(item._id)}
+    </View>
+  )}
+  ListEmptyComponent={() => (
+    <View style={styles.emptyResults}>
+      <Text style={styles.emptyResultsText}>No hay usuarios</Text>
+    </View>
+  )}
+  onEndReached={loadMore}
+  onEndReachedThreshold={0.5}
+/>
+
 
           <AddContactModal
             visible={modalVisible}

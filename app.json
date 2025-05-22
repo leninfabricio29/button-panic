@@ -12,7 +12,6 @@
       "supportsTablet": true
     },
    "android": {
-  "icon": "./assets/images/icon.png",
   "package": "com.leninyanangomez.buttonpanic"
 }
 
