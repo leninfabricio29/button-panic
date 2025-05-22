@@ -1,5 +1,3 @@
-// app/screens/NeighborhoodScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,63 +13,57 @@ import {
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../app/context/AuthContext'; // Make sure to adjust this path
-
+import { useAuth } from '../app/context/AuthContext';
 import { neighborhoodService } from '../app/src/api/services/neighborhood-service';
+import { usersService } from '@/app/src/api/services/users-service';
 import { mediaService } from '@/app/src/api/services/media-service';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const { width } = Dimensions.get('window');
-
-
 
 export default function NeighborhoodScreen() {
   const [loading, setLoading] = useState(true);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [sendingRequest, setSendingRequest] = useState(false);
-const [neighborhoodImages, setNeighborhoodImages] = useState<string[]>([]);
+  const [neighborhoodImages, setNeighborhoodImages] = useState<string[]>([]);
 
+  const { user, setUser } = useAuth(); // ✅ IMPORTANTE: también necesitas setUser
 
-  const { user } = useAuth();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Paso 1: obtener el usuario actualizado del backend
+        const freshUser = await usersService.getUserById(user._id);
+        await AsyncStorage.setItem('user-data', JSON.stringify(freshUser));
+        setUser(freshUser); // actualiza el contexto
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      // Paso 1: obtener imágenes
-      const packages = await mediaService.getPackagesNeigborhood();
-      const allImages = packages.flatMap((pkg) =>
-        pkg.images.map((img) => img.url)
-      );
+        // Paso 2: obtener imágenes de barrios
+        const packages = await mediaService.getPackagesNeigborhood();
+        const allImages = packages.flatMap((pkg) =>
+          pkg.images.map((img) => img.url)
+        );
+        setNeighborhoodImages(allImages);
 
-      console.log("paquetes", packages)
-      setNeighborhoodImages(allImages);
+        // Paso 3: obtener lista de barrios
+        const data = await neighborhoodService.getAllNeighborhoods();
 
-      // Paso 2: obtener barrios
-      const data = await neighborhoodService.getAllNeighborhoods();
+        // Paso 4: añadir imagen aleatoria a cada barrio
+        const enhancedData = data.map((item) => {
+          const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+          return { ...item, imageUrl: randomImage };
+        });
 
-      // Paso 3: asignar imagen aleatoria a cada barrio
-      const enhancedData = data.map((item) => {
-        const randomImage =
-          allImages[Math.floor(Math.random() * allImages.length)];
+        setNeighborhoods(enhancedData);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        Alert.alert('Error', 'No se pudieron cargar los datos.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        return {
-          ...item,
-          imageUrl: randomImage,
-        };
-      });
-
-      setNeighborhoods(enhancedData);
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-      Alert.alert("Error", "No se pudieron cargar los datos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, []);
-
-
-
+    fetchData();
+  }, []);
 
   const handleJoinNeighborhood = async (item) => {
     Alert.alert(
@@ -79,25 +71,19 @@ useEffect(() => {
       `¿Deseas enviar una solicitud para unirte a ${item.name}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Solicitar', 
+        {
+          text: 'Solicitar',
           onPress: async () => {
             try {
               setSendingRequest(true);
-              
-              // Call the petition endpoint
               await neighborhoodService.sendPetitionNeighborhood(item._id, user._id);
-              
               Alert.alert(
-                'Solicitud enviada', 
-                `Tu solicitud para unirte a ${item.name} ha sido enviada. Un administrador la revisará pronto.`
+                'Solicitud enviada',
+                `Tu solicitud para unirte a ${item.name} ha sido enviada.`
               );
             } catch (error) {
               console.error('Error al enviar solicitud:', error);
-              Alert.alert(
-                'Error', 
-                'No se pudo enviar la solicitud. Inténtalo de nuevo más tarde.'
-              );
+              Alert.alert('Error', 'No se pudo enviar la solicitud.');
             } finally {
               setSendingRequest(false);
             }
@@ -107,51 +93,54 @@ useEffect(() => {
     );
   };
 
-  const renderHeader = () => (
-    <View>
-    
-      
-      <View style={styles.alertContainer}>
-        <View style={styles.alertBox}>
-          <Ionicons name="information-circle" size={24} color="#01579b" />
-          <View style={styles.alertTextContainer}>
-            <Text style={styles.alertTitle}>¿Cómo funciona?</Text>
-            <Text style={styles.alertDescription}>
-              Selecciona tu barrio y envía una solicitud. Los administradores verificarán tu información y aprobarán tu ingreso.
-            </Text>
+  const renderNeighborhoodCard = ({ item }) => {
+    const isUserInThisNeighborhood = user?.neighborhood === item._id;
+
+    return (
+      <View style={styles.card}>
+        <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.name}>{item.name}</Text>
+            <View style={styles.memberCounter}>
+              <Ionicons name="people" size={16} color="#01579b" />
+              <Text style={styles.memberCount}>{item.memberCount}</Text>
+            </View>
           </View>
+
+          <Text style={styles.description}>
+            {item.description ||
+              `Comunidad organizada del sector ${item.name}, unidos por la seguridad y bienestar de todos.`}
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.button, isUserInThisNeighborhood && styles.disabledButton]}
+            onPress={() => !isUserInThisNeighborhood && handleJoinNeighborhood(item)}
+            disabled={isUserInThisNeighborhood}
+          >
+            <Ionicons name="enter-outline" size={18} color="#ffffff" />
+            <Text style={styles.buttonText}>
+              {isUserInThisNeighborhood
+                ? 'Ya perteneces a esta comunidad'
+                : 'Unirme a esta comunidad'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  const renderNeighborhoodCard = ({ item }) => (
-    <View style={styles.card}>
-      <Image 
-        source={{ uri: item.imageUrl }}
-        style={styles.cardImage}
-        resizeMode="cover"
-      />
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.name}>{item.name}</Text>
-          <View style={styles.memberCounter}>
-            <Ionicons name="people" size={16} color="#01579b" />
-            <Text style={styles.memberCount}>{item.memberCount }</Text>
-          </View>
+  const renderHeader = () => (
+    <View style={styles.alertContainer}>
+      <View style={styles.alertBox}>
+        <Ionicons name="information-circle" size={24} color="#01579b" />
+        <View style={styles.alertTextContainer}>
+          <Text style={styles.alertTitle}>¿Cómo funciona?</Text>
+          <Text style={styles.alertDescription}>
+            Selecciona tu barrio y envía una solicitud. Los administradores verificarán tu
+            información y aprobarán tu ingreso.
+          </Text>
         </View>
-        
-        <Text style={styles.description}>
-          {item.description || `Comunidad organizada del sector ${item.name}, unidos por la seguridad y bienestar de todos.`}
-        </Text>
-        
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => handleJoinNeighborhood(item)}
-        >
-          <Ionicons name="enter-outline" size={18} color="#ffffff" />
-          <Text style={styles.buttonText}>Unirme a esta comunidad</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -167,7 +156,7 @@ useEffect(() => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <AppHeader title="Barrios disponibles" showBack  />
+        <AppHeader title="Barrios disponibles" showBack />
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#01579b" />
           <Text style={styles.loadingText}>Cargando comunidades...</Text>
@@ -191,6 +180,7 @@ useEffect(() => {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -223,6 +213,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 20,
   },
+  disabledButton: {
+  backgroundColor: '#B0BEC5', // gris azulado claro
+},
   alertBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -86,19 +86,24 @@ const showRandomAd = () => {
   useEffect(() => {
   const interval = setInterval(() => {
     showRandomAd();
-  }, 60000); // cada 60 segundos1
+  }, 80000); // cada 60 segundos1
 
   return () => clearInterval(interval);
 }, [adsImages]);
 
 
   // Función para obtener nombre de usuario para mostrar
-  const getUserDisplayName = () => {
-    if (user && user.name) {
-      return user.name;
-    }
-    return "Usuario";
-  };
+const getUserDisplayName = () => {
+  if (user && user.name) {
+    const parts = user.name.trim().split(" ");
+    const firstName = parts[0] || "";
+    const lastName = parts[2] || parts[1] || ""; // intenta tomar el 2º apellido, si no existe toma el 1º
+
+    return `${firstName} ${lastName}`;
+  }
+  return "Usuario";
+};
+
 
 
   useEffect(() => {
