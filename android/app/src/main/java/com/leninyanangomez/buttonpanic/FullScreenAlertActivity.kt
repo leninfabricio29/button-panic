@@ -67,30 +67,21 @@ class FullScreenAlertActivity : Activity() {
             )
         }
 
-        val alertTitle = TextView(this).apply {
-            text = "¡¡ALERTA DE EMERGENCIA!!"
-            setTextColor(Color.RED)
-            textSize = 24f
-            textAlignment = View.TEXT_ALIGNMENT_CENTER
-            setPadding(20, 40, 20, 20)
-            typeface = customFont
-        }
 
         val senderText = TextView(this).apply {
-            text = "Emitido por: $senderName"
+            text = "$senderName necesita tu ayuda!"
             setTextColor(Color.RED)
-            textSize = 18f
+            textSize = 24f
             textAlignment = View.TEXT_ALIGNMENT_CENTER
             setPadding(20, 0, 20, 20)
             typeface = customFont
         }
 
-        headerLayout.addView(alertTitle)
         headerLayout.addView(senderText)
         mainLayout.addView(headerLayout)
 
         // MAPA (WebView)
-        val mapUrl = "https://www.google.com/maps/search/?api=1&query=$lat,$lon"
+        val mapUrl = "https://www.google.com/maps/embed/v1/view?key=AIzaSyBJV8sX5ObZJB4V0gy6ILSqjEcVOYOMcZ4&center=$lat,$lon&zoom=17"
         Log.d(TAG, "Cargando URL del mapa: $mapUrl")
 
         val webView = WebView(this).apply {
@@ -119,7 +110,7 @@ class FullScreenAlertActivity : Activity() {
         val closeButton = Button(this).apply {
             text = "ENTENDIDO"
             textSize = 18f
-            setTextColor(Color.WHITE)
+            setTextColor(Color.RED)
             background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_button, null)
             setPadding(30, 30, 30, 30)
             layoutParams = LinearLayout.LayoutParams(
