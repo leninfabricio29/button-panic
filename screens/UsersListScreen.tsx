@@ -54,31 +54,31 @@ const UsersListScreen = () => {
     "#fb8c00",
     "#f4511e",
   ];
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const allUsers = await usersService.getAllUsers();
+      const loggedUserData = await AsyncStorage.getItem("user-data");
+      const loggedUser = loggedUserData ? JSON.parse(loggedUserData) : null;
 
+      const filtered = allUsers.filter(
+        (user) => user._id !== loggedUser?._id
+      );
+
+      setUsers(filtered);
+      setFilteredUsers(filtered);
+      setVisibleUsers(filtered.slice(0, PAGE_SIZE));
+      await fetchUserContacts();
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      Alert.alert("Error", "No se pudieron cargar los usuarios");
+    } finally {
+      setLoading(false);
+    }
+  };
   // Cargar datos iniciales
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        const allUsers = await usersService.getAllUsers();
-        const loggedUserData = await AsyncStorage.getItem("user-data");
-        const loggedUser = loggedUserData ? JSON.parse(loggedUserData) : null;
 
-        const filtered = allUsers.filter(
-          (user) => user._id !== loggedUser?._id
-        );
-
-        setUsers(filtered);
-        setFilteredUsers(filtered);
-        setVisibleUsers(filtered.slice(0, PAGE_SIZE));
-        await fetchUserContacts();
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        Alert.alert("Error", "No se pudieron cargar los usuarios");
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchInitialData();
   }, []);
@@ -116,9 +116,10 @@ const UsersListScreen = () => {
 
   const getInitials = (name: string) => {
     const names = name.split(" ");
-    return names.length >= 2
-      ? `${names[0][0]}${names[1][0]}`.toUpperCase()
-      : name[0].toUpperCase();
+return names.length >= 2
+  ? `${names[0][0]}${names[1][0]}`.toUpperCase()
+  : name[0].toUpperCase();
+
   };
 
   const getAvatarColor = (id: string) => {
@@ -169,7 +170,7 @@ const UsersListScreen = () => {
             Alert.alert(
               "Límite de contactos alcanzado",
               "Ya tienes el máximo de 2 contactos permitidos. " +
-                "Por favor elimina uno antes de agregar otro.",
+              "Por favor elimina uno antes de agregar otro.",
               [{ text: "OK" }]
             );
           } else {
@@ -208,29 +209,35 @@ const UsersListScreen = () => {
         <View style={styles.container}>
           <AppHeader title="Usuarios Disponibles" />
 
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={24}
-              color={isFocusedInput ? "#007AFF" : "#aaa"}
-            />
-            <TextInput
-              placeholder="Buscar por nombre o telaéfono"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              style={[
-                styles.searchInput,
-                isFocusedInput && styles.searchInputFocused,
-              ]}
-              placeholderTextColor="#999"
-              //cursorColor="#007AFF"
-              selectionColor="#007AFF20"
-              //includeFontPadding={false}
-              //textAlignVertical="center"
-              //onFocus={() => setIsFocusedInput(true)}
-              //onBlur={() => setIsFocusedInput(false)}
-            />
+          <View style={styles.searchRow}>
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={24}
+                color={isFocusedInput ? "#007AFF" : "#aaa"}
+              />
+              <TextInput
+                placeholder="Buscar por nombre o teléfono"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                style={[
+                  styles.searchInput,
+                  isFocusedInput && styles.searchInputFocused,
+                ]}
+                placeholderTextColor="#999"
+                selectionColor="#007AFF20"
+                onFocus={() => setIsFocusedInput(true)}
+                onBlur={() => setIsFocusedInput(false)}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.reloadButton} onPress={fetchInitialData}>
+              <Ionicons name="refresh" size={20} color="blue" />
+            </TouchableOpacity>
           </View>
+
+
+
           <View style={styles.limitContainer}>
             {userContacts.length >= 2 && (
               <View style={styles.limitBanner}>
@@ -264,37 +271,41 @@ const UsersListScreen = () => {
           </View>
 
           <FlatList
-  data={visibleUsers.filter(user => user.role !== 'admin')}
-  keyExtractor={(item) => item._id}
-  contentContainerStyle={styles.usersList}
-  renderItem={({ item }) => (
-    <View style={styles.userItemContainer}>
-      <View
-        style={[
-          styles.avatar,
-          { backgroundColor: getAvatarColor(item._id) },
-        ]}
-      >
-        <Text style={styles.avatarText}>
-          {getInitials(item.name)}
-        </Text>
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userDetail}>{item.phone}</Text>
-      </View>
-      {renderAddButton(item._id)}
-    </View>
-  )}
-  ListEmptyComponent={() => (
-    <View style={styles.emptyResults}>
-      <Text style={styles.emptyResultsText}>No hay usuarios</Text>
-    </View>
-  )}
-  onEndReached={loadMore}
-  onEndReachedThreshold={0.5}
-/>
-
+            data={visibleUsers}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.usersList}
+            renderItem={({ item }) => (
+              <View style={styles.userItemContainer}>
+                <View
+                  style={[
+                    styles.avatar,
+                    { backgroundColor: getAvatarColor(item._id) },
+                  ]}
+                >
+                  <Text style={styles.avatarText}>
+                    {getInitials(item.name)}
+                  </Text>
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{item.name}</Text>
+                  <Text style={styles.userDetail}>{item.phone}</Text>
+                </View>
+                {renderAddButton(item._id)}
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyResults}>
+                <Text style={styles.emptyResultsText}>No hay usuarios</Text>
+              </View>
+            )}
+            ListFooterComponent={() =>
+              filteredUsers.length > visibleUsers.length ? (
+                <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
+                  <Text style={styles.loadMoreText}>Cargar más</Text>
+                </TouchableOpacity>
+              ) : null
+            }
+          />
 
           <AddContactModal
             visible={modalVisible}
@@ -328,29 +339,39 @@ const styles = StyleSheet.create({
   usersList: {
     paddingBottom: 32,
   },
-  searchContainer: {
+
+  searchInputFocused: {
+    borderColor: "#007AFF",
+  },
+  searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    margin: 16,
+    marginHorizontal: 16,
+    marginTop: 16,},
+
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#eee",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    height: 48,
   },
+
   searchInput: {
     flex: 1,
     fontSize: 16,
     color: "#000",
     marginLeft: 8,
-    padding: 0,
-    paddingTop: Platform.select({ android: 4, ios: 8 }),
-    paddingBottom: Platform.select({ android: 4, ios: 8 }),
+    paddingVertical: 0,
+    height: "100%",
   },
-  searchInputFocused: {
-    borderColor: "#007AFF",
-  },
+
+  
+
   userItemContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -451,6 +472,16 @@ const styles = StyleSheet.create({
     padding: 8,
     marginRight: 4,
   },
+  reloadButton: {
+  marginLeft: 10,
+  backgroundColor: "#fff",
+  borderRadius: 10,
+  width: 48,
+  height: 48,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
 });
 
 export default UsersListScreen;

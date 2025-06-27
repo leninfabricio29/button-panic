@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   },
   promoImageOnly: {
   width: width * 0.7,
-  height: 120,
+  height: 250,
   borderRadius: 12,
   marginRight: 16,
   backgroundColor: "#e0f7fa",
