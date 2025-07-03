@@ -21,22 +21,26 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+    console.log('🔐 TOKEN desde AsyncStorage:', token);
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token.trim()}`;
+      console.log('✅ Se agregó token al header:', config.headers.Authorization);
+    } else {
+      console.log('❌ No se encontró token en AsyncStorage');
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
 
 // Interceptor para manejar respuestas
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.log("error", error)
     if (error.response?.status === 401) {
       console.log('Token expirado o inválido 🚫');
 

@@ -361,14 +361,14 @@ const getUserDisplayName = () => {
 
             <TouchableOpacity
               style={styles.quickOption}
-              onPress={() => router.push("/home/faq-question")}
+              onPress={() => router.push("/home/secure-zone")}
             >
               <View
                 style={[styles.quickOptionIcon, { backgroundColor: "#E91E63" }]}
               >
-                <Ionicons name="help-outline" size={24} color="white" />
+                <Ionicons  name="shield-checkmark"  size={24} color="white" />
               </View>
-              <Text style={styles.quickOptionText}>Preguntas</Text>
+              <Text style={styles.quickOptionText}>Zona Segura</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   },
   promoImageOnly: {
   width: width * 0.7,
-  height: 120,
+  height: 250,
   borderRadius: 12,
   marginRight: 16,
   backgroundColor: "#e0f7fa",
