@@ -6,7 +6,7 @@ export const usersService = {
   async getAllUsers() {
     try {
       const response = await api.get('/users/');
-      return response.data.users; // 👈 Devolvemos solo el array de usuarios
+      return response.data.users.filter((user: { role: string }) => user.role === 'user'); // 👈 Solo usuarios con rol "user"
     } catch (error) {
       console.error('Error al obtener usuarios', error);
       throw error;
