@@ -3,11 +3,8 @@ package com.leninyanangomez.buttonpanic
 import android.app.Activity
 import android.os.Bundle
 import android.view.WindowManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.graphics.Color
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -17,143 +14,147 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.MarkerOptions
 
 class FullScreenAlertActivity : Activity() {
     private var mediaPlayer: MediaPlayer? = null
     private val TAG = "PanicFullScreen"
     private var vibrationHandler: Handler? = null
     private var vibrationRunnable: Runnable? = null
+    private var mapView: MapView? = null
     
-   override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    try {
-        Log.d(TAG, "Iniciando actividad de pantalla completa")
+        try {
+            Log.d(TAG, "Iniciando actividad de pantalla completa")
 
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-
-        val lat = intent.getStringExtra("lat") ?: "0.0"
-        val lon = intent.getStringExtra("lon") ?: "0.0"
-        val senderName = intent.getStringExtra("senderName") ?: "Desconocido"
-        val customFont = ResourcesCompat.getFont(this, R.font.latobold)
-
-        Log.d(TAG, "Coordenadas recibidas: $lat, $lon")
-
-        // MAIN LAYOUT
-        val mainLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#F5F5F5")) // gris claro
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
-            setPadding(30, 30, 30, 30)
-        }
 
-        // HEADER (barra roja)
-        val headerLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
+            val lat = intent.getStringExtra("lat") ?: "0.0"
+            val lon = intent.getStringExtra("lon") ?: "0.0"
+            val senderName = intent.getStringExtra("senderName") ?: "Desconocido"
+            val customFont = ResourcesCompat.getFont(this, R.font.latobold)
 
+            Log.d(TAG, "Coordenadas recibidas: $lat, $lon")
 
-        val senderText = TextView(this).apply {
-            text = "$senderName necesita tu ayuda!"
-            setTextColor(Color.RED)
-            textSize = 24f
-            textAlignment = View.TEXT_ALIGNMENT_CENTER
-            setPadding(20, 0, 20, 20)
-            typeface = customFont
-        }
+            // MAIN LAYOUT
+            val mainLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(Color.parseColor("#F5F5F5")) // gris claro
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                setPadding(30, 30, 30, 30)
+            }
 
-        headerLayout.addView(senderText)
-        mainLayout.addView(headerLayout)
+            // HEADER (barra roja)
+            val headerLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
 
-        // MAPA (WebView)
-        val mapUrl = "https://www.google.com/maps/embed/v1/view?key=AIzaSyBJV8sX5ObZJB4V0gy6ILSqjEcVOYOMcZ4&center=$lat,$lon&zoom=17"
-        Log.d(TAG, "Cargando URL del mapa: $mapUrl")
+            val senderText = TextView(this).apply {
+                text = "$senderName necesita tu ayuda!"
+                setTextColor(Color.RED)
+                textSize = 24f
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                setPadding(20, 0, 20, 20)
+                typeface = customFont
+            }
 
-        val webView = WebView(this).apply {
-            settings.javaScriptEnabled = true
-            webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    Log.d(TAG, "Mapa cargado correctamente")
+            headerLayout.addView(senderText)
+            mainLayout.addView(headerLayout)
+
+            // MAPA (MapView)
+            val mapViewBundle = savedInstanceState?.getBundle("MapViewBundleKey")
+
+            mapView = MapView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0
+                ).apply {
+                    weight = 1f
+                    setMargins(0, 20, 0, 20)
+                }
+                background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_map, null)
+                clipToOutline = true
+            }
+            
+            mapView?.onCreate(mapViewBundle)
+            mapView?.getMapAsync { googleMap ->
+                try {
+                    val latLng = com.google.android.gms.maps.model.LatLng(lat.toDouble(), lon.toDouble())
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17f))
+                    googleMap.addMarker(MarkerOptions().position(latLng).title("Ubicación de $senderName"))
+                    Log.d(TAG, "Mapa configurado correctamente")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error al configurar el mapa: ${e.message}")
                 }
             }
-            loadUrl(mapUrl)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0
-            ).apply {
-                weight = 1f
-                setMargins(0, 20, 0, 20)
+
+            mainLayout.addView(mapView)
+
+            // BOTÓN ENTENDIDO
+            val closeButton = Button(this).apply {
+                text = "ENTENDIDO"
+                textSize = 18f
+                setTextColor(Color.WHITE)
+                background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_button, null)
+                setPadding(30, 30, 30, 30)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(20, 20, 20, 40)
+                }
+                setOnClickListener {
+                    Log.d(TAG, "Botón Entendido presionado")
+                    stopAlarm()
+                    finish()
+                }
             }
-            background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_map, null)
-            clipToOutline = true
+
+            mainLayout.addView(closeButton)
+
+            setContentView(mainLayout)
+            playAlarm()
+            startVibration()
+
+            Log.d(TAG, "Actividad de pantalla completa inicializada correctamente")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error en onCreate: ${e.message}")
+            e.printStackTrace()
         }
-
-        mainLayout.addView(webView)
-
-        // BOTÓN ENTENDIDO
-        val closeButton = Button(this).apply {
-            text = "ENTENDIDO"
-            textSize = 18f
-            setTextColor(Color.RED)
-            background = ResourcesCompat.getDrawable(resources, R.drawable.rounded_button, null)
-            setPadding(30, 30, 30, 30)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(20, 20, 20, 40)
-            }
-            setOnClickListener {
-                Log.d(TAG, "Botón Entendido presionado")
-                stopAlarm()
-                finish()
-            }
-        }
-
-        mainLayout.addView(closeButton)
-
-        setContentView(mainLayout)
-        playAlarm()
-        startVibration()
-
-        Log.d(TAG, "Actividad de pantalla completa inicializada correctamente")
-    } catch (e: Exception) {
-        Log.e(TAG, "Error en onCreate: ${e.message}")
-        e.printStackTrace()
     }
-}
 
-    
     private fun playAlarm() {
-    try {
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm) // usa el nombre de tu archivo sin extensión
-        mediaPlayer?.apply {
-            isLooping = true
-            start()
+        try {
+            mediaPlayer = MediaPlayer.create(this, R.raw.alarm)
+            mediaPlayer?.apply {
+                isLooping = true
+                start()
+            }
+            Log.d(TAG, "Reproducción de sonido personalizado iniciada")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al reproducir sonido personalizado: ${e.message}")
+            e.printStackTrace()
         }
-        Log.d(TAG, "Reproducción de sonido personalizado iniciada")
-    } catch (e: Exception) {
-        Log.e(TAG, "Error al reproducir sonido personalizado: ${e.message}")
-        e.printStackTrace()
     }
-}
-    
+
     private fun startVibration() {
         vibrationHandler = Handler(Looper.getMainLooper())
         vibrationRunnable = object : Runnable {
@@ -175,7 +176,7 @@ class FullScreenAlertActivity : Activity() {
         vibrationHandler?.post(vibrationRunnable!!)
         Log.d(TAG, "Vibración periódica iniciada")
     }
-    
+
     private fun stopAlarm() {
         try {
             mediaPlayer?.apply {
@@ -185,17 +186,17 @@ class FullScreenAlertActivity : Activity() {
                 release()
             }
             mediaPlayer = null
-            
+
             vibrationRunnable?.let { vibrationHandler?.removeCallbacks(it) }
             vibrationHandler = null
             vibrationRunnable = null
-            
+
             Log.d(TAG, "Alarma y vibración detenidas")
         } catch (e: Exception) {
             Log.e(TAG, "Error al detener alarma: ${e.message}")
         }
     }
-    
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         // Interceptar botón de retroceso para evitar salir fácilmente
         return if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -205,10 +206,43 @@ class FullScreenAlertActivity : Activity() {
             super.onKeyDown(keyCode, event)
         }
     }
-    
+
+    override fun onStart() {
+        super.onStart()
+        mapView?.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView?.onResume()
+    }
+
+    override fun onPause() {
+        mapView?.onPause()
+        super.onPause()
+    }
+
+    override fun onStop() {
+        mapView?.onStop()
+        super.onStop()
+    }
+
     override fun onDestroy() {
+        mapView?.onDestroy()
         stopAlarm()
-        Log.d(TAG, "Actividad destruida")
         super.onDestroy()
+        Log.d(TAG, "Actividad destruida")
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        mapView?.onLowMemory()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val mapViewBundle = outState.getBundle("MapViewBundleKey") ?: Bundle()
+        outState.putBundle("MapViewBundleKey", mapViewBundle)
+        mapView?.onSaveInstanceState(mapViewBundle)
     }
 }

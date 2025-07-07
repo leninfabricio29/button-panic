@@ -155,6 +155,8 @@ buildTypes {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    //Se agrega esto luego podemos borrar
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
 
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
