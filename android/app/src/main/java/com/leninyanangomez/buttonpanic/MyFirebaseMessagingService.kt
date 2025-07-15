@@ -117,10 +117,10 @@ private fun showCustomEmergencyNotification(lat: String, lon: String ,senderName
         .setPriority(NotificationCompat.PRIORITY_MAX)
         .setCategory(NotificationCompat.CATEGORY_ALARM)
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        .setSound(alarmSound)
+        .setSound(null)
         .setVibrate(longArrayOf(0, 1000, 500, 1000, 500, 1000))
-        .setAutoCancel(false)
-        .setOngoing(true)
+        .setAutoCancel(true)
+        .setOngoing(false)
         .setFullScreenIntent(pendingIntent, true)
         .setContentIntent(pendingIntent)
         // Mejoras adicionales

@@ -122,9 +122,11 @@ class FullScreenAlertActivity : Activity() {
                     setMargins(20, 20, 20, 40)
                 }
                 setOnClickListener {
+                    val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     Log.d(TAG, "Botón Entendido presionado")
                     stopAlarm()
                     finish()
+                    manager.cancellAll ()
                 }
             }
 
