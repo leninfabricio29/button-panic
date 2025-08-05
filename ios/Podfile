@@ -4,6 +4,7 @@ require File.join(File.dirname(`node --print "require.resolve('react-native/pack
 require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
+<<<<<<< Updated upstream
 ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '1' : '0'
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
@@ -11,12 +12,19 @@ platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 use_modular_headers!
 install! 'cocoapods',
   :deterministic_uuids => false
+=======
+platform :ios, '15.1'
+use_modular_headers!
+
+install! 'cocoapods', :deterministic_uuids => false
+>>>>>>> Stashed changes
 
 prepare_react_native_project!
 
 target 'VSOS' do
   use_expo_modules!
 
+<<<<<<< Updated upstream
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
   else
@@ -45,16 +53,49 @@ target 'VSOS' do
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
+=======
+  config_command = [
+    'node',
+    '--no-warnings',
+    '--eval',
+    'require(require.resolve(\'expo-modules-autolinking\', { paths: [require.resolve(\'expo/package.json\')] }))(process.argv.slice(1))',
+    'react-native-config',
+    '--json',
+    '--platform',
+    'ios'
+  ]
+
+  config = use_native_modules!(config_command)
+
+  use_frameworks! :linkage => :static
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => true,
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  # 🔧 Clave para evitar el error de GoogleUtilities y FirebaseCoreInternal
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+
+>>>>>>> Stashed changes
   post_install do |installer|
     react_native_post_install(
       installer,
       config[:reactNativePath],
+<<<<<<< Updated upstream
       :mac_catalyst_enabled => false,
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
     # This is necessary for Xcode 14, because it signs resource bundles by default
     # when building for devices.
+=======
+      :mac_catalyst_enabled => false
+    )
+
+>>>>>>> Stashed changes
     installer.target_installation_results.pod_target_installation_results
       .each do |pod_name, target_installation_result|
       target_installation_result.resource_bundle_targets.each do |resource_bundle_target|

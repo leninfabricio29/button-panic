@@ -1,6 +1,5 @@
 package com.leninyanangomez.buttonpanic
 import expo.modules.splashscreen.SplashScreenManager
-import com.leninyanangomez.buttonpanic.createNotificationChannel
 
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +21,6 @@ class MainActivity : ReactActivity() {
     SplashScreenManager.registerOnActivity(this)
     // @generated end expo-splashscreen
     super.onCreate(null)
-    createNotificationChannel(this)
   }
 
   /**
