@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   FlatList,
   Alert,
+  useColorScheme,
 } from "react-native";
 import { contactsService } from "@/app/src/api/services/contact-service";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,7 +20,7 @@ interface AddContactModalProps {
   onClose: () => void;
   contactUserId: string;
   onSuccess: () => void;
-  currentContactsCount: number;
+  currentContactsCount?: number; // opcional, no lo usas en el código
 }
 
 export default function AddContactModal({
@@ -28,6 +29,46 @@ export default function AddContactModal({
   contactUserId,
   onSuccess,
 }: AddContactModalProps) {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
+  // Colores para claro y oscuro
+  const colors = isDarkMode
+    ? {
+        backgroundOverlay: "rgba(0,0,0,0.6)",
+        modalBackground: "#1E1E1E",
+        textPrimary: "#FFF",
+        textSecondary: "#CCC",
+        placeholder: "#999",
+        border: "#333",
+        icon: "#64B5F6",
+        buttonSaveBg: "#32d6a6",
+        buttonSaveShadow: "#32d6a6",
+        buttonCancelBorder: "#555",
+        buttonCancelText: "#AAA",
+        inputBackground: "#2A2A2A",
+        dropdownBackground: "#2A2A2A",
+        dropdownText: "#EEE",
+        dropdownSeparator: "#444",
+      }
+    : {
+        backgroundOverlay: "rgba(0,0,0,0.6)",
+        modalBackground: "#fff",
+        textPrimary: "#2d3436",
+        textSecondary: "#333",
+        placeholder: "#999",
+        border: "#dfe6e9",
+        icon: "#01579b",
+        buttonSaveBg: "#32d6a6",
+        buttonSaveShadow: "#32d6a6",
+        buttonCancelBorder: "#dfe6e9",
+        buttonCancelText: "#636e72",
+        inputBackground: "#f8f9fa",
+        dropdownBackground: "#fff",
+        dropdownText: "#333",
+        dropdownSeparator: "#f0f0f0",
+      };
+
   const [alias, setAlias] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedRelationship, setSelectedRelationship] = useState("");
@@ -72,7 +113,6 @@ export default function AddContactModal({
       });
       alert("Contacto añadido con éxito");
       onSuccess();
-      // Limpiar los campos después de un envío exitoso
       setAlias("");
       setSelectedRelationship("");
       handleClose();
@@ -85,57 +125,73 @@ export default function AddContactModal({
   };
 
   const handleClose = () => {
-    // Limpiar los campos cuando se cierre el modal
     setAlias("");
     setSelectedRelationship("");
     onClose();
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: colors.backgroundOverlay },
+          ]}
+        >
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Añadir contacto</Text>
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: colors.modalBackground },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                Añadir contacto
+              </Text>
 
-              <View style={styles.inputContainer}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  { backgroundColor: colors.inputBackground, borderColor: colors.border },
+                ]}
+              >
                 <Ionicons
                   name="person-outline"
                   size={20}
-                  color="#777"
+                  color={colors.icon}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   placeholder="Nombre de alias"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.placeholder}
                   value={alias}
                   onChangeText={setAlias}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.textSecondary }]}
                   autoCapitalize="words"
                 />
               </View>
 
               <TouchableOpacity
-                style={styles.inputContainer}
+                style={[
+                  styles.inputContainer,
+                  { backgroundColor: colors.inputBackground, borderColor: colors.border },
+                  { flexDirection: "row", alignItems: "center" },
+                ]}
                 onPress={() => setShowDropdown(true)}
                 activeOpacity={0.8}
               >
                 <Ionicons
                   name="people-outline"
                   size={20}
-                  color="#777"
+                  color={colors.icon}
                   style={styles.inputIcon}
                 />
                 <Text
                   style={[
                     styles.input,
-                    { color: selectedRelationship ? "#333" : "#999" },
+                    { color: selectedRelationship ? colors.textSecondary : colors.placeholder },
+                    { paddingRight: 0, marginLeft: 0 },
                   ]}
                 >
                   {relationshipOptions.find(
@@ -143,11 +199,9 @@ export default function AddContactModal({
                   )?.label || "Seleccione relación"}
                 </Text>
                 <Ionicons
-                  name={
-                    showDropdown ? "chevron-up-outline" : "chevron-down-outline"
-                  }
+                  name={showDropdown ? "chevron-up-outline" : "chevron-down-outline"}
                   size={20}
-                  color="#777"
+                  color={colors.icon}
                   style={{ marginLeft: "auto" }}
                 />
               </TouchableOpacity>
@@ -163,7 +217,12 @@ export default function AddContactModal({
                   activeOpacity={1}
                   onPress={() => setShowDropdown(false)}
                 >
-                  <View style={styles.dropdownContainer}>
+                  <View
+                    style={[
+                      styles.dropdownContainer,
+                      { backgroundColor: colors.dropdownBackground },
+                    ]}
+                  >
                     <FlatList
                       data={relationshipOptions}
                       keyExtractor={(item) => item.value}
@@ -175,13 +234,23 @@ export default function AddContactModal({
                             setShowDropdown(false);
                           }}
                         >
-                          <Text style={styles.dropdownOptionText}>
+                          <Text
+                            style={[
+                              styles.dropdownOptionText,
+                              { color: colors.dropdownText },
+                            ]}
+                          >
                             {item.label}
                           </Text>
                         </TouchableOpacity>
                       )}
                       ItemSeparatorComponent={() => (
-                        <View style={styles.dropdownSeparator} />
+                        <View
+                          style={[
+                            styles.dropdownSeparator,
+                            { backgroundColor: colors.dropdownSeparator },
+                          ]}
+                        />
                       )}
                     />
                   </View>
@@ -191,25 +260,46 @@ export default function AddContactModal({
               {loading ? (
                 <ActivityIndicator
                   size="large"
-                  color="#32d6a6"
+                  color={colors.buttonSaveBg}
                   style={styles.loader}
                 />
               ) : (
                 <View style={styles.buttonsContainer}>
                   <TouchableOpacity
-                    style={[styles.button, styles.saveButton]}
+                    style={[
+                      styles.button,
+                      styles.saveButton,
+                      {
+                        backgroundColor: colors.buttonSaveBg,
+                        shadowColor: colors.buttonSaveShadow,
+                      },
+                    ]}
                     onPress={handleSubmit}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.buttonText}>Guardar contacto</Text>
+                    <Text style={[styles.buttonText, { color: colors.textPrimary }]}>
+                      Guardar contacto
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.button, styles.cancelButton]}
+                    style={[
+                      styles.button,
+                      styles.cancelButton,
+                      {
+                        borderColor: colors.buttonCancelBorder,
+                      },
+                    ]}
                     onPress={handleClose}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.buttonText, styles.cancelButtonText]}>
+                    <Text
+                      style={[
+                        styles.buttonText,
+                        styles.cancelButtonText,
+                        { color: colors.buttonCancelText },
+                      ]}
+                    >
                       Cancelar
                     </Text>
                   </TouchableOpacity>
@@ -226,7 +316,6 @@ export default function AddContactModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -234,20 +323,18 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 25,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
+    shadowColor: "#000",
   },
   modalTitle: {
     fontSize: 22,
     fontWeight: "700",
     marginBottom: 25,
-    color: "#2d3436",
     textAlign: "center",
   },
   inputContainer: {
@@ -255,28 +342,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     borderWidth: 1,
-    borderColor: "#dfe6e9",
     borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 15,
-    backgroundColor: "#f8f9fa",
     paddingVertical: 10,
   },
   inputIcon: {
     marginRight: 10,
-    color: "#01579b",
   },
   input: {
     flex: 1,
     height: "100%",
-    color: "#333",
     fontSize: 16,
-    paddingRight: 30, // Espacio para el ícono
-  },
-  dropdownButton: {
-    position: "absolute",
-    right: 10,
-    top: 15,
+    paddingRight: 30,
   },
   dropdownOverlay: {
     flex: 1,
@@ -287,13 +365,12 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     width: "80%",
     maxHeight: 300,
-    backgroundColor: "#fff",
     borderRadius: 8,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
+    shadowColor: "#000",
   },
   dropdownOption: {
     paddingVertical: 15,
@@ -301,12 +378,11 @@ const styles = StyleSheet.create({
   },
   dropdownOptionText: {
     fontSize: 16,
-    color: "#333",
   },
   dropdownSeparator: {
     height: 1,
-    backgroundColor: "#f0f0f0",
     marginHorizontal: 10,
+    marginVertical: 0,
   },
   buttonsContainer: {
     marginTop: 10,
@@ -320,8 +396,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   saveButton: {
-    backgroundColor: "#32d6a6",
-    shadowColor: "#32d6a6",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -330,14 +404,13 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#dfe6e9",
   },
   buttonText: {
     fontSize: 16,
     fontWeight: "600",
   },
   cancelButtonText: {
-    color: "#636e72",
+    fontWeight: "600",
   },
   loader: {
     marginVertical: 30,

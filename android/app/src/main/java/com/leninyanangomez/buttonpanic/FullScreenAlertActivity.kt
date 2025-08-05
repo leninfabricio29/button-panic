@@ -18,6 +18,10 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.MarkerOptions
 
+// Agrega estas importaciones:
+import android.content.Context
+import android.app.NotificationManager
+
 class FullScreenAlertActivity : Activity() {
     private var mediaPlayer: MediaPlayer? = null
     private val TAG = "PanicFullScreen"
@@ -126,7 +130,7 @@ class FullScreenAlertActivity : Activity() {
                     Log.d(TAG, "Botón Entendido presionado")
                     stopAlarm()
                     finish()
-                    manager.cancellAll ()
+                    manager.cancelAll ()
                 }
             }
 

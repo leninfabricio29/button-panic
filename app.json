@@ -9,13 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.leninyanangomez.buttonpanic"
     },
-   "android": {
-  "package": "com.leninyanangomez.buttonpanic"
-}
-
-,
+    "android": {
+      "package": "com.leninyanangomez.buttonpanic"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",

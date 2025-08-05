@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   StatusBar,
   Modal,
-  ScrollView,
-  Dimensions,
   FlatList,
+  Dimensions,
+  Alert,
+  useColorScheme,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { useAuth } from "../app/context/AuthContext";
@@ -18,7 +19,6 @@ import { neighborhoodService } from "@/app/src/api/services/neighborhood-service
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { usersService } from "@/app/src/api/services/users-service";
-import { Alert } from "react-native";
 
 interface NeighborhoodUser {
   _id: string;
@@ -31,7 +31,29 @@ interface NeighborhoodDetails {
   description?: string;
 }
 
+const { height } = Dimensions.get('window');
+
 const UserAccountScreen = () => {
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+
+  const colors = {
+    background: isDark ? "#121212" : "#f5f7fa",
+    text: isDark ? "#e0e0e0" : "#333",
+    subText: isDark ? "#aaaaaa" : "#777",
+    primary: isDark ? "#90caf9" : "#01579b",
+    cardBackground: isDark ? "#1e1e1e" : "#fff",
+    infoCardBackground: isDark ? "#263238" : "#e1f5fe",
+    infoCardBorder: isDark ? "#64b5f6" : "#3498db",
+    shadowColor: isDark ? "#000" : "#000",
+    buttonExitBackground: "#f44336", // rojo, queda igual
+    buttonMembersBackground: "#01579b",
+    modalBackground: isDark ? "#222" : "#fff",
+    modalOverlay: "rgba(0,0,0,0.7)",
+    emptyText: isDark ? "#888" : "#777",
+    borderColor: isDark ? "#444" : "#01579b",
+  };
+
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [neighborhoodUsers, setNeighborhoodUsers] = useState<NeighborhoodUser[]>([]);
@@ -59,8 +81,6 @@ const UserAccountScreen = () => {
       }
 
       const data = await neighborhoodService.getNeighborhoodUsers(id);
-      console.log("Usuarios del barrio:", data.users);
-
       if (!data?.users?.length) {
         setHasNeighborhood(false);
       } else {
@@ -133,7 +153,6 @@ const UserAccountScreen = () => {
                 user._id
               );
 
-              // Actualizar estado para reflejar que ya no está en ninguna comunidad
               setHasNeighborhood(false);
               setNeighborhoodUsers([]);
               setNeighborhoodDetails(null);
@@ -154,13 +173,13 @@ const UserAccountScreen = () => {
   if (loading) {
     return (
       <SafeAreaView
-        style={styles.loaderContainer}
+        style={[styles.loaderContainer, { backgroundColor: colors.background }]}
         edges={["left", "right", "bottom"]}
       >
-        <StatusBar barStyle="light-content" backgroundColor="#0056a8" />
-        <View style={styles.headerBackground} />
-        <ActivityIndicator size="large" color="#32d6a6" />
-        <Text style={styles.loadingText}>Cargando información...</Text>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
+        <View style={[styles.headerBackground, { backgroundColor: colors.primary }]} />
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.subText }]}>Cargando información...</Text>
       </SafeAreaView>
     );
   }
@@ -168,20 +187,20 @@ const UserAccountScreen = () => {
   if (!hasNeighborhood) {
     return (
       <SafeAreaView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         edges={["left", "right", "bottom"]}
       >
-        <StatusBar barStyle="light-content" backgroundColor="#01579b" />
-        <View style={styles.headerBackground} />
-        <AppHeader title="Mi comunidad" showBack  />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
+        <View style={[styles.headerBackground, { backgroundColor: colors.primary }]} />
+        <AppHeader title="Mi comunidad" showBack />
         <View style={styles.noNeighborhoodContainer}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="home-outline" size={80} color="#CCCCCC" />
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? "#333" : "#f5f5f5" }]}>
+            <Ionicons name="home-outline" size={80} color={colors.subText} />
           </View>
-          <Text style={styles.noNeighborhoodTitle}>
+          <Text style={[styles.noNeighborhoodTitle, { color: colors.primary }]}>
             No perteneces a ninguna comunidad
           </Text>
-          <Text style={styles.noNeighborhoodDescription}>
+          <Text style={[styles.noNeighborhoodDescription, { color: colors.subText }]}>
             Actualmente no estás registrado en ningún barrio. Únete a una
             comunidad en Barrios/Grupos.
           </Text>
@@ -191,22 +210,20 @@ const UserAccountScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
-      <StatusBar barStyle="light-content" backgroundColor="#01579b" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["left", "right", "bottom"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
       <AppHeader title="Mi comunidad" showBack />
 
       <View style={styles.contentContainer}>
-        {/* Tarjeta de información */}
-        <View style={styles.infoCard}>
-          <Ionicons name="information-circle" size={24} color="#3498db" />
-          <Text style={styles.infoText}>
+        <View style={[styles.infoCard, { backgroundColor: colors.infoCardBackground, borderLeftColor: colors.infoCardBorder }]}>
+          <Ionicons name="information-circle" size={24} color={colors.primary} />
+          <Text style={[styles.infoText, { color: colors.primary }]}>
             Solo puedes pertenecer a una comunidad. Si deseas unirte a otra,
             deberás salir de la actual y enviar una solicitud para la nueva.
           </Text>
         </View>
 
-        {/* Tarjeta principal de la comunidad */}
-        <View style={styles.communityCard}>
+        <View style={[styles.communityCard, { backgroundColor: colors.cardBackground, shadowColor: colors.shadowColor }]}>
           <Image
             source={{
               uri: "https://ecuadors.live/wp-content/uploads/2023/07/pinas-atractivos-turisticos-de-ecuador.jpg",
@@ -215,8 +232,7 @@ const UserAccountScreen = () => {
             resizeMode="cover"
           />
 
-          {/* Badge de miembros */}
-          <View style={styles.memberBadge}>
+          <View style={[styles.memberBadge, { backgroundColor: "rgba(101, 101, 102, 0.8)" }]}>
             <Ionicons name="people" size={16} color="#ffffff" />
             <Text style={styles.memberBadgeText}>
               {neighborhoodUsers?.length || 0} miembros
@@ -224,10 +240,10 @@ const UserAccountScreen = () => {
           </View>
 
           <View style={styles.cardContent}>
-            <Text style={styles.communityName}>
+            <Text style={[styles.communityName, { color: colors.primary }]}>
               {neighborhoodDetails?.name || "Nombre no disponible"}
             </Text>
-            <Text style={styles.communityDescription}>
+            <Text style={[styles.communityDescription, { color: colors.subText }]}>
               {`Comunidad organizada del sector ${
                 neighborhoodDetails?.name || "desconocido"
               }, unidos por la seguridad y bienestar de todos.`}
@@ -235,9 +251,8 @@ const UserAccountScreen = () => {
           </View>
         </View>
 
-        {/* Botón de salir - Mejorado */}
         <TouchableOpacity
-          style={styles.exitButton}
+          style={[styles.exitButton, { backgroundColor: colors.buttonExitBackground }]}
           onPress={handleExitCommunity}
           activeOpacity={0.7}
         >
@@ -252,9 +267,8 @@ const UserAccountScreen = () => {
           </View>
         </TouchableOpacity>
 
-        {/* Botón de ver miembros - Mejorado */}
         <TouchableOpacity
-          style={styles.membersButton}
+          style={[styles.membersButton, { backgroundColor: colors.buttonMembersBackground }]}
           onPress={() => setShowMembersModal(true)}
           activeOpacity={0.7}
         >
@@ -270,17 +284,15 @@ const UserAccountScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal corregido con FlatList para mejor rendimiento con muchos usuarios */}
       <Modal
         visible={showMembersModal}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setShowMembersModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {/* Cabecera fija del modal */}
-            <View style={styles.modalHeader}>
+        <View style={[styles.modalOverlay, { backgroundColor: colors.modalOverlay }]}>
+          <View style={[styles.modalContainer, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
               <Text style={styles.modalTitle}>Miembros de la comunidad</Text>
               <TouchableOpacity
                 style={styles.closeButton}
@@ -290,31 +302,30 @@ const UserAccountScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* FlatList para renderizado eficiente con muchos usuarios */}
             {neighborhoodUsers && neighborhoodUsers.length > 0 ? (
               <FlatList
                 data={neighborhoodUsers}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                  <View style={styles.memberItem}>
+                  <View style={[styles.memberItem, { borderBottomColor: colors.borderColor }]}>
                     <View style={styles.avatarContainer}>
                       <Ionicons
                         name="person-circle"
                         size={40}
-                        color="#01579b"
+                        color={colors.primary}
                       />
                     </View>
                     <View style={styles.memberDetails}>
-                      <Text style={styles.memberName} numberOfLines={1}>
-                        {item.email && item.email.includes('@') 
-                          ? item.email.split("@")[0] 
+                      <Text style={[styles.memberName, { color: colors.text }]} numberOfLines={1}>
+                        {item.email && item.email.includes('@')
+                          ? item.email.split("@")[0]
                           : item.name || 'Usuario'}
                       </Text>
-                      <Text style={styles.memberEmail} numberOfLines={1}>
+                      <Text style={[styles.memberEmail, { color: colors.subText }]} numberOfLines={1}>
                         {item.email || 'No disponible'}
                       </Text>
                     </View>
-                    <View style={styles.memberRoleBadge}>
+                    <View style={[styles.memberRoleBadge, { backgroundColor: colors.primary }]}>
                       <Text style={styles.roleText}>Miembro</Text>
                     </View>
                   </View>
@@ -327,8 +338,8 @@ const UserAccountScreen = () => {
               />
             ) : (
               <View style={styles.emptyState}>
-                <Ionicons name="people-outline" size={48} color="#ccc" />
-                <Text style={styles.emptyText}>
+                <Ionicons name="people-outline" size={48} color={colors.emptyText} />
+                <Text style={[styles.emptyText, { color: colors.emptyText }]}>
                   No hay miembros registrados
                 </Text>
               </View>
@@ -340,23 +351,18 @@ const UserAccountScreen = () => {
   );
 };
 
-const { height } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
   },
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#ffffff",
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#546e7a",
     fontWeight: "500",
   },
   contentContainer: {
@@ -369,41 +375,33 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#01579b",
+    height: 56,
   },
 
-  // Estilos para la tarjeta de información
   infoCard: {
-    backgroundColor: "#e1f5fe",
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
     borderLeftWidth: 4,
-    borderLeftColor: "#3498db",
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   infoText: {
     marginLeft: 12,
-    color: "#2980b9",
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
   },
 
-  // Estilos para la tarjeta principal de la comunidad
   communityCard: {
-    backgroundColor: "#ffffff",
     borderRadius: 16,
     overflow: "hidden",
     marginTop: 16,
     elevation: 4,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -418,7 +416,6 @@ const styles = StyleSheet.create({
     right: 16,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(101, 101, 102, 0.8)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -435,75 +432,64 @@ const styles = StyleSheet.create({
   communityName: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#01579b",
     marginBottom: 8,
   },
   communityDescription: {
     fontSize: 15,
-    color: "#546e7a",
     lineHeight: 22,
   },
 
-  // Estilos para los botones mejorados
   exitButton: {
-    backgroundColor: '#f44336',
     borderRadius: 12,
     marginTop: 20,
     paddingVertical: 15,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
   membersButton: {
-    backgroundColor: '#01579b',
     borderRadius: 12,
     marginTop: 15,
     paddingVertical: 15,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
   buttonContent: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 10,
   },
   buttonIcon: {
     marginRight: 8,
   },
 
-  // Estilos para el modal mejorado
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: height * 0.7, // 70% de la altura de la pantalla
+    height: height * 0.7,
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#01579b",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     elevation: 4,
-    zIndex: 10, // Asegurar que el header esté siempre visible
+    zIndex: 10,
   },
   modalTitle: {
     color: "#fff",
@@ -512,26 +498,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   closeButton: {
-    padding: 10, // Área táctil más grande
+    padding: 10,
     borderRadius: 20,
   },
-  // Estilos para FlatList
+
   listContent: {
     paddingBottom: 20,
   },
   emptyListContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalContent: {
-    paddingBottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollPadding: {
-    height: 40, // Espacio adicional al final del scroll
+    height: 40,
   },
   emptyState: {
     alignItems: "center",
@@ -541,7 +521,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 16,
-    color: "#777",
     fontSize: 16,
     textAlign: "center",
   },
@@ -551,7 +530,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#01579b",
   },
   avatarContainer: {
     marginRight: 15,
@@ -562,15 +540,12 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#333",
   },
   memberEmail: {
     fontSize: 14,
-    color: "#777",
     marginTop: 2,
   },
   memberRoleBadge: {
-    backgroundColor: "#01579b",
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -581,7 +556,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Estilos para la pantalla de "No pertenece a ningún barrio"
   noNeighborhoodContainer: {
     flex: 1,
     justifyContent: "center",
@@ -589,7 +563,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   iconContainer: {
-    backgroundColor: "#f5f5f5",
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -600,13 +573,11 @@ const styles = StyleSheet.create({
   noNeighborhoodTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#01579b",
     marginBottom: 16,
     textAlign: "center",
   },
   noNeighborhoodDescription: {
     fontSize: 16,
-    color: "#546e7a",
     textAlign: "center",
     marginBottom: 32,
     lineHeight: 24,

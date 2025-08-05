@@ -25,12 +25,12 @@ export default function PolicyModal({ visible, onAccept }: { visible: boolean; o
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)', // fondo semi-transparente oscuro
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1e1e1e', // fondo oscuro del modal
     padding: 25,
     borderRadius: 12,
     elevation: 5,
@@ -39,21 +39,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 15,
-    color: '#01579b',
+    color: '#4fc3f7', // azul claro para título
   },
   body: {
     fontSize: 14,
-    color: '#37474f',
+    color: '#cccccc', // texto claro para lectura cómoda
     marginBottom: 25,
   },
   button: {
-    backgroundColor: '#01579b',
+    backgroundColor: '#4fc3f7', // botón azul claro para buen contraste
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#1e1e1e', // texto oscuro para botón claro
     fontWeight: '600',
-  }
+  },
 });
+

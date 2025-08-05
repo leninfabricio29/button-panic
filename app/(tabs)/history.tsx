@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AppHeader from '@/components/AppHeader';
@@ -34,6 +35,32 @@ const NotificationsScreen = () => {
   const { user } = useAuth();
   const userId = user._id;
 
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+
+  // Definición de colores dinámica según el modo
+  const colors = isDarkMode
+    ? {
+        background: '#121212',
+        card: '#1e1e1e',
+        surface: '#2d2d2d',
+        primary: '#64b5f6',
+        text: '#ffffff',
+        textSecondary: '#b0b0b0',
+        textMuted: '#757575',
+        border: '#333333',
+      }
+    : {
+        background: '#ffffff',
+        card: '#fff',
+        surface: '#f5f5f5',
+        primary: '#01579b',
+        text: '#333333',
+        textSecondary: '#546e7a',
+        textMuted: '#666666',
+        border: '#ccc',
+      };
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('todas');
@@ -54,26 +81,25 @@ const NotificationsScreen = () => {
   }, [userId]);
 
   const filteredNotifications = notifications.filter((n) => {
-  const createdAt = new Date(n.createdAt);
-  const now = new Date();
+    const createdAt = new Date(n.createdAt);
+    const now = new Date();
 
-  if (filterType === 'hoy') {
-    return (
-      createdAt.getDate() === now.getDate() &&
-      createdAt.getMonth() === now.getMonth() &&
-      createdAt.getFullYear() === now.getFullYear()
-    );
-  }
+    if (filterType === 'hoy') {
+      return (
+        createdAt.getDate() === now.getDate() &&
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
+      );
+    }
 
-  if (filterType === 'semana') {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(now.getDate() - 7);
-    return createdAt >= oneWeekAgo;
-  }
+    if (filterType === 'semana') {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(now.getDate() - 7);
+      return createdAt >= oneWeekAgo;
+    }
 
-  return true; // 'todas'
-});
-
+    return true; // 'todas'
+  });
 
   const renderItem = ({ item }: { item: Notification }) => {
     const isOwn = item.emitter === userId;
@@ -81,12 +107,22 @@ const NotificationsScreen = () => {
     const message = isOwn ? 'Has presionado el botón de pánico.' : item.message;
 
     return (
-      <View style={[styles.notificationItem, { borderLeftColor: borderColor }]}>
+      <View
+        style={[
+          styles.notificationItem,
+          {
+            borderLeftColor: borderColor,
+            backgroundColor: colors.card,
+          },
+        ]}
+      >
         <MaterialIcons name="notification-important" size={24} color={borderColor} />
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.message}>{message}</Text>
-          <Text style={styles.time}>{moment(item.createdAt).fromNow()}</Text>
+          <Text style={[styles.title, { color: colors.primary }]}>{item.title}</Text>
+          <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
+          <Text style={[styles.time, { color: colors.textSecondary }]}>
+            {moment(item.createdAt).fromNow()}
+          </Text>
         </View>
       </View>
     );
@@ -102,10 +138,20 @@ const NotificationsScreen = () => {
     return (
       <TouchableOpacity
         key={value}
-        style={[styles.chip, selected && styles.chipSelected]}
+        style={[
+          styles.chip,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+          selected && { backgroundColor: colors.primary, borderColor: colors.primary },
+        ]}
         onPress={() => onPress(value)}
       >
-        <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+        <Text
+          style={[
+            styles.chipText,
+            { color: colors.text },
+            selected && { color: 'white', fontWeight: 'bold' },
+          ]}
+        >
           {label}
         </Text>
       </TouchableOpacity>
@@ -113,24 +159,32 @@ const NotificationsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader title="Historial de Notificaciones" />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filters}
+      >
         {filterOptions.map(({ label, value }) =>
           renderCustomChip(label, value, filterType, setFilterType)
         )}
       </ScrollView>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#01579b" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={filteredNotifications}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No hay notificaciones</Text>}
+          ListEmptyComponent={
+            <Text style={{ textAlign: 'center', marginTop: 20, color: colors.textMuted }}>
+              No hay notificaciones
+            </Text>
+          }
         />
       )}
     </SafeAreaView>
@@ -138,69 +192,49 @@ const NotificationsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   filters: {
     flexDirection: 'row',
     paddingVertical: 12,
     paddingHorizontal: 10,
   },
- chip: {
-  paddingVertical: 4,
-  paddingHorizontal: 10,
-  borderRadius: 16,
-  backgroundColor: '#fff',
-  marginRight: 8,
-  borderWidth: 1,
-  borderColor: '#ccc',
-  height: 32,
-  justifyContent: 'center',
-},
-chipSelected: {
-  backgroundColor: '#01579b',
-  borderColor: '#01579b',
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.2,
-  elevation: 4,
-},
-chipText: {
-  color: '#5c4033',
-  fontSize: 14,
-  textAlign: 'center',
-},
-chipTextSelected: {
-  color: 'white',
-  fontWeight: 'bold',
-},
-
+  chip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+    height: 32,
+    justifyContent: 'center',
+  },
+  chipText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
   list: {
     padding: 12,
   },
   notificationItem: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#fff',
     borderRadius: 10,
     marginBottom: 10,
     alignItems: 'center',
     borderLeftWidth: 5,
     elevation: 6,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
   },
   title: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: '#2980b9',
   },
   message: {
-    color: '#5c4033',
     marginTop: 4,
   },
   time: {
     fontSize: 12,
-    color: '#8b5e3c',
     marginTop: 4,
   },
 });

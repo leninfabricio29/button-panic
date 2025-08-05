@@ -14,13 +14,13 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  useColorScheme,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { authService } from "../app/src/api/services/auth-service";
 import { useAuth } from "../app/context/AuthContext";
 import { useRouter } from "expo-router";
 
-// Tipo para los requisitos de contraseña
 type PasswordRequirement = {
   label: string;
   validator: (password: string) => boolean;
@@ -28,7 +28,41 @@ type PasswordRequirement = {
 };
 
 export default function ChangePasswordScreen() {
-  const router = useRouter(); // Usar useRouter en lugar de navigation
+  const router = useRouter();
+  const scheme = useColorScheme();
+  const isDark = scheme === "dark";
+
+  const colors = {
+    background: isDark ? "#121212" : "#ffffff",
+    text: isDark ? "#ffffff" : "#000000",
+    inputBorder: isDark ? "#555" : "#ddd",
+    error: "#ff5252",
+    success: "#4caf50",
+    button: isDark ? "#1e88e5" : "#01579b",
+    buttonDisabled: "#cccccc",
+    placeholder: isDark ? "#aaaaaa" : "#888888",
+    requirementMet: "#4caf50",
+    requirementUnmet: isDark ? "#aaaaaa" : "#888888",
+  };
+
+  const dynamicStyles = {
+    imagePassword: {
+      width: "90%",
+      height: 150,
+      resizeMode: "contain",
+      marginBottom: 20,
+      borderWidth: 2,
+      borderColor: isDark ? "#444" : "#ccc",
+      borderRadius: 12,
+      backgroundColor: isDark ? "#1c1c1e" : "#fff",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+  };
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,46 +75,23 @@ export default function ChangePasswordScreen() {
     [key: string]: boolean;
   }>({});
   const [loading, setLoading] = useState(false);
-  
-  // Obtener usuario del contexto de autenticación
-  const { user, logout } = useAuth(); // También añadimos logout del contexto
 
-  // Definir los requisitos de la contraseña
+  const { user, logout } = useAuth();
+
   const requirements: PasswordRequirement[] = [
-    {
-      id: "length",
-      label: "Al menos 8 caracteres",
-      validator: (password) => password.length >= 8,
-    },
-    {
-      id: "uppercase",
-      label: "Al menos una mayúscula",
-      validator: (password) => /[A-Z]/.test(password),
-    },
-    {
-      id: "lowercase",
-      label: "Al menos una minúscula",
-      validator: (password) => /[a-z]/.test(password),
-    },
-    {
-      id: "number",
-      label: "Al menos un número",
-      validator: (password) => /[0-9]/.test(password),
-    },
-    {
-      id: "special",
-      label: "Al menos un símbolo especial",
-      validator: (password) => /[\W_]/.test(password),
-    },
+    { id: "length", label: "Al menos 8 caracteres", validator: (p) => p.length >= 8 },
+    { id: "uppercase", label: "Al menos una mayúscula", validator: (p) => /[A-Z]/.test(p) },
+    { id: "lowercase", label: "Al menos una minúscula", validator: (p) => /[a-z]/.test(p) },
+    { id: "number", label: "Al menos un número", validator: (p) => /[0-9]/.test(p) },
+    { id: "special", label: "Al menos un símbolo especial", validator: (p) => /[\W_]/.test(p) },
   ];
 
-  // Validar la contraseña en tiempo real
   useEffect(() => {
-    const newRequirements: { [key: string]: boolean } = {};
+    const newReqs: { [key: string]: boolean } = {};
     requirements.forEach((req) => {
-      newRequirements[req.id] = req.validator(newPassword);
+      newReqs[req.id] = req.validator(newPassword);
     });
-    setPasswordRequirements(newRequirements);
+    setPasswordRequirements(newReqs);
   }, [newPassword]);
 
   const validatePassword = (password: string) => {
@@ -93,7 +104,6 @@ export default function ChangePasswordScreen() {
   };
 
   const handleChangePassword = async () => {
-    // Validaciones
     const newPasswordError = validatePassword(newPassword);
     const confirmPasswordError =
       newPassword !== confirmPassword ? "Las contraseñas no coinciden." : "";
@@ -102,7 +112,7 @@ export default function ChangePasswordScreen() {
       Alert.alert("Error", "Por favor completa todos los campos.");
       return;
     }
-    
+
     if (newPasswordError || confirmPasswordError) {
       setErrors({
         newPassword: newPasswordError,
@@ -111,177 +121,148 @@ export default function ChangePasswordScreen() {
       return;
     }
 
-    // Verificar que tengamos el email del usuario
     if (!user?.email) {
       Alert.alert("Error", "No se pudo obtener el email del usuario. Por favor, inicia sesión nuevamente.");
       return;
     }
 
     setLoading(true);
-    
+
     try {
-      // Llamar al servicio de actualización de contraseña
       await authService.updatePassword({
         email: user.email,
         currentPassword,
-        newPassword
+        newPassword,
       });
-      
-      // Mostrar mensaje de éxito y redireccionar al login
-      Alert.alert(
-        "Éxito", 
-        "Tu contraseña ha sido actualizada correctamente. Por favor inicia sesión nuevamente.", 
-        [
-          { 
-            text: "OK", 
-            onPress: async () => {
-              // Limpiar el formulario
-              setCurrentPassword("");
-              setNewPassword("");
-              setConfirmPassword("");
-              setErrors({});
-              
-              // Cerrar sesión
-              await logout();
-              
-              // Redireccionar a login
-              router.push('/auth/login');
-            } 
-          }
-        ]
-      );
+
+      Alert.alert("Éxito", "Tu contraseña ha sido actualizada correctamente. Por favor inicia sesión nuevamente.", [
+        {
+          text: "OK",
+          onPress: async () => {
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            setErrors({});
+            await logout();
+            router.push("/auth/login");
+          },
+        },
+      ]);
     } catch (err) {
       console.error("Error al actualizar contraseña:", err);
-      
-      // Mostrar mensaje de error adecuado según la respuesta del servidor
       let errorMessage = "Ocurrió un error al actualizar la contraseña.";
-      
-      // Usar tipado seguro para TypeScript
       const error = err as any;
-      if (error && typeof error === 'object' && 'response' in error) {
+      if (error && typeof error === "object" && "response" in error) {
         if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
       }
-      
       Alert.alert("Error", errorMessage);
-      
-      // Si el error es de contraseña incorrecta, marcamos ese campo
       if (errorMessage.includes("contraseña actual es incorrecta")) {
-        setErrors(prev => ({...prev, currentPassword: "La contraseña actual es incorrecta"}));
+        setErrors((prev) => ({ ...prev, currentPassword: "La contraseña actual es incorrecta" }));
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Verificar si todos los requisitos se cumplen
   const isPasswordValid = () => {
     return Object.values(passwordRequirements).every((valid) => valid);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <AppHeader title="Cambiar contraseña" showBack />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidView}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true}
-          >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
             <View style={styles.container}>
-              <Image
-                style={styles.imagePassword}
-                source={require("../assets/images/password.png")}
-              />
+              <Image style={dynamicStyles.imagePassword} source={require("../assets/images/password.png")} />
 
-              <Text style={styles.label}>Contraseña actual</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.currentPassword ? styles.inputError : null,
-                ]}
-                secureTextEntry
-                placeholder="Ingresa tu contraseña actual"
-                value={currentPassword}
-                onChangeText={(text) => {
-                  setCurrentPassword(text);
-                  setErrors((prev) => ({ ...prev, currentPassword: "" }));
-                }}
-              />
-              {errors.currentPassword ? (
-                <Text style={styles.errorText}>{errors.currentPassword}</Text>
-              ) : null}
+              {/* Campos de entrada */}
+              {[
+                {
+                  label: "Contraseña actual",
+                  value: currentPassword,
+                  setValue: setCurrentPassword,
+                  error: errors.currentPassword,
+                  secure: true,
+                  placeholder: "Ingresa tu contraseña actual",
+                },
+                {
+                  label: "Nueva contraseña",
+                  value: newPassword,
+                  setValue: setNewPassword,
+                  error: errors.newPassword,
+                  secure: true,
+                  placeholder: "Ingresa tu nueva contraseña",
+                },
+                {
+                  label: "Confirmar nueva contraseña",
+                  value: confirmPassword,
+                  setValue: setConfirmPassword,
+                  error: errors.confirmPassword,
+                  secure: true,
+                  placeholder: "Confirma tu nueva contraseña",
+                },
+              ].map((field, i) => (
+                <View key={i} style={{ width: "100%" }}>
+                  <Text style={[styles.label, { color: colors.text }]}>{field.label}</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      { borderColor: colors.inputBorder, color: colors.text },
+                      field.error && { borderColor: colors.error },
+                      field.value &&
+                        (field.value === newPassword && field.label.includes("Nueva") && isPasswordValid()) && {
+                          borderColor: colors.success,
+                        },
+                    ]}
+                    secureTextEntry={field.secure}
+                    placeholder={field.placeholder}
+                    placeholderTextColor={colors.placeholder}
+                    value={field.value}
+                    onChangeText={(text) => {
+                      field.setValue(text);
+                      setErrors((prev) => ({ ...prev, [field.label]: "" }));
+                    }}
+                  />
+                  {field.error ? (
+                    <Text style={[styles.errorText, { color: colors.error }]}>{field.error}</Text>
+                  ) : null}
+                </View>
+              ))}
 
-              <Text style={styles.label}>Nueva contraseña</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.newPassword ? styles.inputError : null,
-                  isPasswordValid() && newPassword ? styles.inputSuccess : null,
-                ]}
-                secureTextEntry
-                placeholder="Ingresa tu nueva contraseña"
-                value={newPassword}
-                onChangeText={(text) => {
-                  setNewPassword(text);
-                  setErrors((prev) => ({ ...prev, newPassword: "" }));
-                }}
-              />
-
-              {/* Mostrar requisitos de contraseña */}
+              {/* Requisitos */}
               <View style={styles.requirementsContainer}>
                 {requirements.map((req) => (
-                  <View key={req.id} style={styles.requirementItem}>
-                    <Text
-                      style={[
-                        styles.requirementText,
-                        passwordRequirements[req.id]
-                          ? styles.requirementMet
-                          : styles.requirementUnmet,
-                      ]}
-                    >
-                      {passwordRequirements[req.id] ? "✓" : "•"} {req.label}
-                    </Text>
-                  </View>
+                  <Text
+                    key={req.id}
+                    style={{
+                      fontSize: 12,
+                      color: passwordRequirements[req.id] ? colors.requirementMet : colors.requirementUnmet,
+                      marginVertical: 2,
+                    }}
+                  >
+                    {passwordRequirements[req.id] ? "✓" : "•"} {req.label}
+                  </Text>
                 ))}
               </View>
 
-              {errors.newPassword ? (
-                <Text style={styles.errorText}>{errors.newPassword}</Text>
-              ) : null}
-
-              <Text style={styles.label}>Confirmar nueva contraseña</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.confirmPassword ? styles.inputError : null,
-                  confirmPassword && newPassword === confirmPassword
-                    ? styles.inputSuccess
-                    : null,
-                ]}
-                secureTextEntry
-                placeholder="Confirma tu nueva contraseña"
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  setErrors((prev) => ({ ...prev, confirmPassword: "" }));
-                }}
-              />
-              {errors.confirmPassword ? (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-              ) : null}
-
+              {/* Botón */}
               <TouchableOpacity
                 style={[
                   styles.button,
-                  (loading || !isPasswordValid() || newPassword !== confirmPassword) &&
-                    styles.buttonDisabled,
+                  {
+                    backgroundColor:
+                      loading || !isPasswordValid() || newPassword !== confirmPassword
+                        ? colors.buttonDisabled
+                        : colors.button,
+                  },
                 ]}
                 onPress={handleChangePassword}
                 disabled={loading || !isPasswordValid() || newPassword !== confirmPassword}
@@ -292,8 +273,7 @@ export default function ChangePasswordScreen() {
                   <Text style={styles.buttonText}>Actualizar contraseña</Text>
                 )}
               </TouchableOpacity>
-              
-              {/* Espacio adicional al final para asegurar que el último elemento sea visible */}
+
               <View style={styles.bottomSpace} />
             </View>
           </ScrollView>
@@ -304,31 +284,12 @@ export default function ChangePasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
-  keyboardAvoidView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 40, // Añadir espacio en la parte inferior
-  },
-  container: {
-    padding: 20,
-    alignItems: "center",
-    width: "100%",
-  },
-  imagePassword: {
-    width: "90%",
-    height: 150, // Reducido para dejar más espacio a los inputs
-    resizeMode: "contain", // Cambiado para mejor visualización
-    marginBottom: 10,
-  },
+  safeArea: { flex: 1 },
+  keyboardAvoidView: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: 40 },
+  container: { padding: 20, alignItems: "center", width: "100%" },
   label: {
     fontSize: 16,
-    color: "#01579b",
     marginBottom: 6,
     marginTop: 16,
     alignSelf: "flex-start",
@@ -339,30 +300,18 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  inputError: {
-    borderColor: "red",
-  },
-  inputSuccess: {
-    borderColor: "green",
   },
   errorText: {
     alignSelf: "flex-start",
-    color: "red",
     marginTop: 4,
     fontSize: 13,
   },
   button: {
-    backgroundColor: "#01579b",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 30,
     width: "100%",
-  },
-  buttonDisabled: {
-    backgroundColor: "#cccccc",
   },
   buttonText: {
     color: "#fff",
@@ -374,19 +323,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
   },
-  requirementItem: {
-    marginVertical: 2,
-  },
-  requirementText: {
-    fontSize: 12,
-  },
-  requirementMet: {
-    color: "green",
-  },
-  requirementUnmet: {
-    color: "gray",
-  },
   bottomSpace: {
-    height: 80, // Espacio adicional al final
+    height: 80,
   },
 });

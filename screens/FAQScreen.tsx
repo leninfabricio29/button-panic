@@ -1,5 +1,3 @@
-// app/screens/FAQScreen.tsx
-
 import React from 'react';
 import {
   View,
@@ -7,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  useColorScheme,
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +26,10 @@ const faqs = [
 ];
 
 export default function FAQScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = createStyles(isDark);
+
   return (
     <SafeAreaView style={styles.container}>
       <AppHeader title="Preguntas Frecuentes" showBack />
@@ -34,7 +37,12 @@ export default function FAQScreen() {
         {faqs.map((item, index) => (
           <View key={index} style={styles.faqItem}>
             <View style={styles.faqHeader}>
-              <Ionicons name="help-circle-outline" size={22} color="#2980b9" style={styles.icon} />
+              <Ionicons
+                name="help-circle-outline"
+                size={22}
+                color={isDark ? '#63b3ed' : '#2980b9'}
+                style={styles.icon}
+              />
               <Text style={styles.question}>{item.question}</Text>
             </View>
             <Text style={styles.answer}>{item.answer}</Text>
@@ -45,43 +53,44 @@ export default function FAQScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    padding: 20,
-  },
-  faqItem: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e1f5fe',
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-  },
-  faqHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  icon: {
-    marginRight: 8,
-    
-  },
-  question: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2980b9',
-  },
-  answer: {
-    fontSize: 14,
-    color: '#5c4033',
-    lineHeight: 20,
-  },
-});
+const createStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDark ? '#1a202c' : '#fff', // gris muy oscuro o blanco
+    },
+    content: {
+      padding: 20,
+    },
+    faqItem: {
+      marginBottom: 20,
+      padding: 16,
+      backgroundColor: isDark ? '#2d3748' : '#fff', // fondo oscuro o blanco
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: isDark ? '#4a5568' : '#e1f5fe', // borde más suave en oscuro
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: isDark ? 0.6 : 0.2,
+      shadowRadius: 4,
+    },
+    faqHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    icon: {
+      marginRight: 8,
+    },
+    question: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: isDark ? '#63b3ed' : '#2980b9', // azul claro o azul normal
+    },
+    answer: {
+      fontSize: 14,
+      color: isDark ? '#cbd5e0' : '#5c4033', // texto claro o marrón
+      lineHeight: 20,
+    },
+  });

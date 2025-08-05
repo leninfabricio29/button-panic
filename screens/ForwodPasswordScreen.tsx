@@ -29,12 +29,12 @@ export default function ForgotPasswordScreen() {
       Alert.alert('Atención', 'Debes aceptar las condiciones antes de continuar');
       return;
     }
-  
+
     if (!email.includes('@')) {
       Alert.alert('Error', 'Ingresa un correo válido.');
       return;
     }
-  
+
     try {
       setLoading(true);
       await notifyService.sendPetitioPassword(email);
@@ -47,13 +47,12 @@ export default function ForgotPasswordScreen() {
       setLoading(false);
     }
   };
-  
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#01579b" />
+      <StatusBar barStyle="light-content" backgroundColor="#121212" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}
       >
         <ScrollView contentContainerStyle={styles.content}>
@@ -71,7 +70,7 @@ export default function ForgotPasswordScreen() {
 
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={22} color="#01579b" style={styles.inputIcon} />
+              <Ionicons name="mail-outline" size={22} color="#bbbbbb" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="Correo electrónico"
@@ -92,13 +91,17 @@ export default function ForgotPasswordScreen() {
               <Ionicons
                 name={accepted ? 'checkbox' : 'square-outline'}
                 size={24}
-                color={accepted ? '#01579b' : '#90a4ae'}
+                color={accepted ? '#4caf50' : '#999'}
               />
               <Text style={styles.checkText}>He leído y acepto esta condición</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.resetButton, loading && styles.disabledButton, !accepted && styles.inactiveButton]} 
+            <TouchableOpacity
+              style={[
+                styles.resetButton,
+                loading && styles.disabledButton,
+                !accepted && styles.inactiveButton,
+              ]}
               onPress={handleResetPassword}
               disabled={loading || !accepted}
             >
@@ -115,19 +118,19 @@ export default function ForgotPasswordScreen() {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.backContainer} 
+            <TouchableOpacity
+              style={styles.backContainer}
               onPress={() => router.push('/auth/login')}
               disabled={loading}
             >
               <View style={styles.backContent}>
-                <Ionicons name="arrow-back-outline" size={18} color="#01579b" />
+                <Ionicons name="arrow-back-outline" size={18} color="#bbbbbb" />
                 <Text style={styles.backText}>Volver al inicio de sesión</Text>
               </View>
             </TouchableOpacity>
           </View>
-          
-          <Text style={styles.creditsText}>Powered by SoftKilla. </Text>
+
+          <Text style={styles.creditsText}>Powered by SoftKilla.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -137,140 +140,130 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff"
+    backgroundColor: '#121212',
   },
   keyboardContainer: {
-    flex: 1
+    flex: 1,
   },
   content: {
     flexGrow: 1,
     paddingHorizontal: 25,
     paddingTop: 20,
-    paddingBottom: 20
+    paddingBottom: 20,
   },
   header: {
     alignItems: 'center',
     marginBottom: 30,
-    marginTop: 10
+    marginTop: 10,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#01579b",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#1e1e1e',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 15,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
   },
   title: {
     fontSize: 26,
-    fontWeight: "bold",
-    color: "#01579b",
+    fontWeight: 'bold',
+    color: '#ffffff',
     marginBottom: 12,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   subtitle: {
-    color: "#546e7a",
+    color: '#aaaaaa',
     fontSize: 15,
     textAlign: 'center',
-    lineHeight: 22
+    lineHeight: 22,
   },
   formContainer: {
-    width: "100%",
+    width: '100%',
     marginBottom: 20,
-    marginTop: 10
+    marginTop: 10,
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 22,
-    backgroundColor: "#f5f9ff",
+    backgroundColor: '#1e1e1e',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e1f5fe",
-    height: 56
+    borderColor: '#333',
+    height: 56,
   },
   inputIcon: {
     paddingLeft: 15,
-    paddingRight: 10
+    paddingRight: 10,
   },
   input: {
     flex: 1,
     height: 56,
-    color: "#37474f",
-    fontSize: 16
+    color: '#ffffff',
+    fontSize: 16,
   },
   checkContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 25
+    marginBottom: 25,
   },
   checkText: {
-    color: "#546e7a",
+    color: '#cccccc',
     fontSize: 15,
-    marginLeft: 10
+    marginLeft: 10,
   },
   resetButton: {
-    backgroundColor: "#01579b",
+    backgroundColor: '#1e88e5',
     height: 56,
     borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   disabledButton: {
-    backgroundColor: "#90a4ae",
+    backgroundColor: '#555',
   },
   inactiveButton: {
-    backgroundColor: "#cfd8dc",
+    backgroundColor: '#444',
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   spinIcon: {
-    marginRight: 8
+    marginRight: 8,
   },
   resetButtonText: {
-    color: "#ffffff",
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: "700",
-    marginLeft: 8
+    fontWeight: '700',
+    marginLeft: 8,
   },
   backContainer: {
     marginTop: 22,
-    alignItems: "center"
+    alignItems: 'center',
   },
   backContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   backText: {
-    color: "#01579b",
+    color: '#bbbbbb',
     fontSize: 15,
-    fontWeight: "500",
-    marginLeft: 4
+    fontWeight: '500',
+    marginLeft: 4,
   },
   creditsText: {
-    color: "#90a4ae",
+    color: '#777777',
     fontSize: 12,
     marginTop: 20,
-    textAlign: "center"
-  }
+    textAlign: 'center',
+  },
 });

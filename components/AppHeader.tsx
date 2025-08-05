@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextStyle,
   SafeAreaView,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -29,31 +30,57 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   rightIcon,
   onRightPress,
   style,
-  titleColor = '#f9fafb',
-  iconColor = '#f9fafb',
+  titleColor,
+  iconColor,
 }) => {
   const navigation = useNavigation();
+  const colorScheme = useColorScheme(); // Detecta modo oscuro o claro
+
+  const isDarkMode = colorScheme === 'dark';
+
+  const dynamicStyles = StyleSheet.create({
+    header: {
+      padding: 12,
+      backgroundColor: isDarkMode ? '#0a0a0a' : '#01579b',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      elevation: 2,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: isDarkMode ? '#333' : '#138d75',
+    },
+    title: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: titleColor || (isDarkMode ? '#f9fafb' : '#f9fafb'),
+      marginTop: 2,
+    },
+    iconSpacer: {
+      width: 32,
+    },
+  });
 
   return (
-    <SafeAreaView >
-      <View style={[styles.header, style]}>
-        <StatusBar barStyle="light-content"  />
+    <SafeAreaView>
+      <View style={[dynamicStyles.header, style]}>
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        />
 
-        {/* Back Button or spacer */}
         {showBack ? (
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={iconColor} />
+            <Ionicons name="arrow-back" size={24} color={iconColor || (isDarkMode ? '#f9fafb' : '#f9fafb')} />
           </TouchableOpacity>
         ) : (
-          <View style={styles.iconSpacer} />
+          <View style={dynamicStyles.iconSpacer} />
         )}
 
-        {/* Title */}
-        <Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
+        <Text style={dynamicStyles.title} numberOfLines={1}>
           {title}
         </Text>
-
-       
       </View>
     </SafeAreaView>
   );
@@ -61,26 +88,4 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
 export default AppHeader;
 
-const styles = StyleSheet.create({
-  header: {
-    padding: 12,
-    backgroundColor: '#01579b',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    elevation: 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#138d75',
-  },
-  title: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 2
-  },
-  iconSpacer: {
-    width: 32, // igual al tamaño de un ícono para centrar
-  },
-});
+

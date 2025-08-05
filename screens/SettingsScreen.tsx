@@ -1,5 +1,3 @@
-// app/screens/SettingsScreen.tsx
-
 import React from "react";
 import {
   View,
@@ -8,17 +6,34 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-  Alert,
-  Dimensions,
+  useColorScheme,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useRouter } from "expo-router";
-import { useAuth } from "../app/context/AuthContext"; // nuevo import
+import { useRouter } from "expo-router";
+import { useAuth } from "../app/context/AuthContext";
 
 const SettingsScreen = () => {
-  const router = useRouter(); // ✅ Aquí sí está permitido
-  const { logout } = useAuth(); // nuevo hook
+  const router = useRouter();
+  const { logout } = useAuth();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
+  const colors = isDarkMode
+    ? {
+        background: "#121212",
+        cardBackground: "#1E1E1E",
+        border: "#333",
+        text: "#FFF",
+        icon: "#64B5F6",
+      }
+    : {
+        background: "#FFFFFF",
+        cardBackground: "#FFFFFF",
+        border: "#e1f5fe",
+        text: "#2e1f0f",
+        icon: "#5c4033",
+      };
 
   const handleLogout = async () => {
     await logout();
@@ -35,7 +50,6 @@ const SettingsScreen = () => {
       label: "Cambiar contraseña",
       onPress: () => router.push("settings/change-password"),
     },
-
     {
       icon: "log-out-outline",
       label: "Cerrar sesión",
@@ -44,22 +58,30 @@ const SettingsScreen = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader title="Configuraciones" />
       <ScrollView contentContainerStyle={styles.grid}>
         {settings.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.card}
+            style={[
+              styles.card,
+              { 
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.border,
+                shadowColor: isDarkMode ? "#000" : "#000",
+                elevation: 6,
+              }
+            ]}
             onPress={item.onPress}
           >
             <Ionicons
               name={item.icon}
               size={28}
-              color="#5c4033"
+              color={colors.icon}
               style={styles.icon}
             />
-            <Text style={styles.label}>{item.label}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -70,9 +92,7 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
   },
-
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -82,10 +102,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   card: {
-    backgroundColor: "white",
-    borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#e1f5fe",
     width: "50%",
     height: "20%",
     paddingVertical: 20,
@@ -94,10 +111,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
     marginRight: 1,
-    elevation: 6,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
+    borderRadius: 12,
   },
   icon: {
     marginBottom: 10,
@@ -105,9 +121,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: "500",
-    color: "#2e1f0f",
     textAlign: "center",
   },
 });
 
 export default SettingsScreen;
+

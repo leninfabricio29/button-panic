@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ImageSourcePropType,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -19,6 +20,9 @@ interface ImageModalProps {
 const { width, height } = Dimensions.get('window');
 
 const ImageModal: React.FC<ImageModalProps> = ({ visible, onClose, imageSource }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   return (
     <Modal
       visible={visible}
@@ -29,9 +33,13 @@ const ImageModal: React.FC<ImageModalProps> = ({ visible, onClose, imageSource }
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close-circle" size={32} color="#fff" />
+            <Ionicons
+              name="close-circle"
+              size={32}
+              color={isDark ? "#fff" : "#000"}  // blanco en oscuro, negro en claro
+            />
           </TouchableOpacity>
-          
+
           <Image
             source={imageSource}
             style={styles.image}
@@ -46,7 +54,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ visible, onClose, imageSource }
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)', // buen fondo para ambos modos, queda oscuro igual
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -56,7 +64,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#000',
+    backgroundColor: '#000', // fondo negro siempre para que la imagen resalte
   },
   image: {
     width: '100%',
@@ -71,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ImageModal; 
+export default ImageModal;

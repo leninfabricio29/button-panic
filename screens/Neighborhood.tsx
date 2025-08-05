@@ -10,6 +10,7 @@ import {
   Image,
   SafeAreaView,
   Dimensions,
+  useColorScheme,
 } from 'react-native';
 import AppHeader from '@/components/AppHeader';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,32 +28,25 @@ export default function NeighborhoodScreen() {
   const [sendingRequest, setSendingRequest] = useState(false);
   const [neighborhoodImages, setNeighborhoodImages] = useState<string[]>([]);
 
-  const { user, setUser } = useAuth(); // ✅ IMPORTANTE: también necesitas setUser
+  const { user, setUser } = useAuth();
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Paso 1: obtener el usuario actualizado del backend
         const freshUser = await usersService.getUserById(user._id);
         await AsyncStorage.setItem('user-data', JSON.stringify(freshUser));
-        setUser(freshUser); // actualiza el contexto
+        setUser(freshUser);
 
-        // Paso 2: obtener imágenes de barrios
         const packages = await mediaService.getPackagesNeigborhood();
-        const allImages = packages.flatMap((pkg) =>
-          pkg.images.map((img) => img.url)
-        );
+        const allImages = packages.flatMap(pkg => pkg.images.map(img => img.url));
         setNeighborhoodImages(allImages);
 
-        // Paso 3: obtener lista de barrios
         const data = await neighborhoodService.getAllNeighborhoods();
-
-        // Paso 4: añadir imagen aleatoria a cada barrio
-        const enhancedData = data.map((item) => {
-          const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+        const enhancedData = data.map(item => {
+          const randomImage = allImages[Math.floor(Math.random() * allImages.length)] || null;
           return { ...item, imageUrl: randomImage };
         });
-
         setNeighborhoods(enhancedData);
       } catch (error) {
         console.error('Error al cargar datos:', error);
@@ -77,10 +71,7 @@ export default function NeighborhoodScreen() {
             try {
               setSendingRequest(true);
               await neighborhoodService.sendPetitionNeighborhood(item._id, user._id);
-              Alert.alert(
-                'Solicitud enviada',
-                `Tu solicitud para unirte a ${item.name} ha sido enviada.`
-              );
+              Alert.alert('Solicitud enviada', `Tu solicitud para unirte a ${item.name} ha sido enviada.`);
             } catch (error) {
               console.error('Error al enviar solicitud:', error);
               Alert.alert('Error', 'No se pudo enviar la solicitud.');
@@ -95,34 +86,34 @@ export default function NeighborhoodScreen() {
 
   const renderNeighborhoodCard = ({ item }) => {
     const isUserInThisNeighborhood = user?.neighborhood === item._id;
+    const styles = colorScheme === 'dark' ? darkStyles : lightStyles;
 
     return (
       <View style={styles.card}>
-        <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+        {item.imageUrl && (
+          <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+        )}
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
-            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
             <View style={styles.memberCounter}>
-              <Ionicons name="people" size={16} color="#01579b" />
-              <Text style={styles.memberCount}>{item.memberCount}</Text>
+              <Ionicons name="people" size={16} color={colorScheme === 'dark' ? '#90caf9' : '#01579b'} />
+              <Text style={styles.memberCount}>{item.memberCount || 0}</Text>
             </View>
           </View>
 
-          <Text style={styles.description}>
-            {item.description ||
-              `Comunidad organizada del sector ${item.name}, unidos por la seguridad y bienestar de todos.`}
+          <Text style={styles.description} numberOfLines={3}>
+            {item.description || `Comunidad organizada del sector ${item.name}, unidos por la seguridad y bienestar de todos.`}
           </Text>
 
           <TouchableOpacity
             style={[styles.button, isUserInThisNeighborhood && styles.disabledButton]}
             onPress={() => !isUserInThisNeighborhood && handleJoinNeighborhood(item)}
-            disabled={isUserInThisNeighborhood}
+            disabled={isUserInThisNeighborhood || sendingRequest}
           >
             <Ionicons name="enter-outline" size={18} color="#ffffff" />
             <Text style={styles.buttonText}>
-              {isUserInThisNeighborhood
-                ? 'Ya perteneces a esta comunidad'
-                : 'Unirme a esta comunidad'}
+              {isUserInThisNeighborhood ? 'Ya perteneces a esta comunidad' : 'Unirme a esta comunidad'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -130,35 +121,44 @@ export default function NeighborhoodScreen() {
     );
   };
 
-  const renderHeader = () => (
-    <View style={styles.alertContainer}>
-      <View style={styles.alertBox}>
-        <Ionicons name="information-circle" size={24} color="#01579b" />
-        <View style={styles.alertTextContainer}>
-          <Text style={styles.alertTitle}>¿Cómo funciona?</Text>
-          <Text style={styles.alertDescription}>
-            Selecciona tu barrio y envía una solicitud. Los administradores verificarán tu
-            información y aprobarán tu ingreso.
-          </Text>
+  const renderHeader = () => {
+    const styles = colorScheme === 'dark' ? darkStyles : lightStyles;
+
+    return (
+      <View style={styles.alertContainer}>
+        <View style={styles.alertBox}>
+          <Ionicons name="information-circle" size={24} color={colorScheme === 'dark' ? '#90caf9' : '#01579b'} />
+          <View style={styles.alertTextContainer}>
+            <Text style={styles.alertTitle}>¿Cómo funciona?</Text>
+            <Text style={styles.alertDescription}>
+              Selecciona tu barrio y envía una solicitud. Los administradores verificarán tu información y aprobarán tu ingreso.
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  const renderFooter = () => (
-    <View style={styles.footer}>
-      <Text style={styles.footerText}>
-        ¿No encuentras tu barrio? Contacta con soporte para añadirlo.
-      </Text>
-    </View>
-  );
+  const renderFooter = () => {
+    const styles = colorScheme === 'dark' ? darkStyles : lightStyles;
+
+    return (
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          ¿No encuentras tu barrio? Contacta con soporte para añadirlo.
+        </Text>
+      </View>
+    );
+  };
+
+  const styles = colorScheme === 'dark' ? darkStyles : lightStyles;
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <AppHeader title="Barrios disponibles" showBack />
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#01579b" />
+          <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#90caf9' : '#01579b'} />
           <Text style={styles.loadingText}>Cargando comunidades...</Text>
         </View>
       </SafeAreaView>
@@ -170,7 +170,7 @@ export default function NeighborhoodScreen() {
       <AppHeader title="Barrios disponibles" showBack />
       <FlatList
         data={neighborhoods}
-        keyExtractor={(item) => item._id || item.id || String(Math.random())}
+        keyExtractor={(item) => item._id || item.id || Math.random().toString()}
         renderItem={renderNeighborhoodCard}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
@@ -181,49 +181,20 @@ export default function NeighborhoodScreen() {
   );
 }
 
-
-const styles = StyleSheet.create({
+const commonStyles = {
   container: {
     flex: 1,
-  },
-  headerImage: {
-    height: 180,
-    width: '100%',
-    justifyContent: 'flex-end',
-  },
-  headerImageStyle: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  headerOverlay: {
-    backgroundColor: 'rgba(1, 87, 155, 0.7)',
-    padding: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 5,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#e1f5fe',
   },
   alertContainer: {
     paddingHorizontal: 16,
     marginTop: 20,
   },
-  disabledButton: {
-  backgroundColor: '#B0BEC5', // gris azulado claro
-},
   alertBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -234,11 +205,9 @@ const styles = StyleSheet.create({
   },
   alertTitle: {
     fontWeight: 'bold',
-    color: '#01579b',
     fontSize: 16,
   },
   alertDescription: {
-    color: '#546e7a',
     marginTop: 4,
     fontSize: 14,
     lineHeight: 20,
@@ -254,16 +223,13 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#546e7a',
   },
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     marginHorizontal: 16,
     marginVertical: 10,
     overflow: 'hidden',
     elevation: 3,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -284,39 +250,34 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#01579b',
     flex: 1,
   },
   memberCounter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e1f5fe',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   memberCount: {
     marginLeft: 4,
-    color: '#01579b',
     fontWeight: '500',
     fontSize: 14,
   },
   description: {
     fontSize: 14,
-    color: '#546e7a',
     marginBottom: 16,
     lineHeight: 20,
   },
   button: {
-    backgroundColor: '#01579b',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
+  disabledButton: {},
   buttonText: {
-    color: '#ffffff',
     fontWeight: '600',
     fontSize: 15,
     marginLeft: 8,
@@ -327,8 +288,129 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: '#90a4ae',
     fontSize: 14,
     textAlign: 'center',
+  },
+};
+
+const lightStyles = StyleSheet.create({
+  ...commonStyles,
+  container: {
+    ...commonStyles.container,
+    backgroundColor: '#f5f7fa',
+  },
+  alertBox: {
+    ...commonStyles.alertBox,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+  },
+  alertTitle: {
+    ...commonStyles.alertTitle,
+    color: '#01579b',
+  },
+  alertDescription: {
+    ...commonStyles.alertDescription,
+    color: '#546e7a',
+  },
+  loadingText: {
+    ...commonStyles.loadingText,
+    color: '#546e7a',
+  },
+  card: {
+    ...commonStyles.card,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+  },
+  name: {
+    ...commonStyles.name,
+    color: '#01579b',
+  },
+  memberCounter: {
+    ...commonStyles.memberCounter,
+    backgroundColor: '#e1f5fe',
+  },
+  memberCount: {
+    ...commonStyles.memberCount,
+    color: '#01579b',
+  },
+  description: {
+    ...commonStyles.description,
+    color: '#546e7a',
+  },
+  button: {
+    ...commonStyles.button,
+    backgroundColor: '#01579b',
+  },
+  disabledButton: {
+    backgroundColor: '#B0BEC5',
+  },
+  buttonText: {
+    ...commonStyles.buttonText,
+    color: '#ffffff',
+  },
+  footerText: {
+    ...commonStyles.footerText,
+    color: '#90a4ae',
+  },
+});
+
+const darkStyles = StyleSheet.create({
+  ...commonStyles,
+  container: {
+    ...commonStyles.container,
+    backgroundColor: '#121212',
+  },
+  alertBox: {
+    ...commonStyles.alertBox,
+    backgroundColor: '#1e1e1e',
+    shadowColor: '#000',
+  },
+  alertTitle: {
+    ...commonStyles.alertTitle,
+    color: '#90caf9',
+  },
+  alertDescription: {
+    ...commonStyles.alertDescription,
+    color: '#b0bec5',
+  },
+  loadingText: {
+    ...commonStyles.loadingText,
+    color: '#b0bec5',
+  },
+  card: {
+    ...commonStyles.card,
+    backgroundColor: '#1e1e1e',
+    shadowColor: '#000',
+  },
+  name: {
+    ...commonStyles.name,
+    color: '#90caf9',
+  },
+  memberCounter: {
+    ...commonStyles.memberCounter,
+    backgroundColor: '#263238',
+  },
+  memberCount: {
+    ...commonStyles.memberCount,
+    color: '#90caf9',
+  },
+  description: {
+    ...commonStyles.description,
+    color: '#b0bec5',
+  },
+  button: {
+    ...commonStyles.button,
+    backgroundColor: '#2196f3',
+  },
+  disabledButton: {
+    backgroundColor: '#37474f',
+  },
+  buttonText: {
+    ...commonStyles.buttonText,
+    color: '#ffffff',
+  },
+  footerText: {
+    ...commonStyles.footerText,
+    color: '#78909c',
   },
 });

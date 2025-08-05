@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
   StatusBar,
   Image,
   ScrollView,
-  Alert
+  Alert,
+  useColorScheme,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,25 +22,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PolicyModal from '@/components/PolicyModal';
 import { fcmService } from '@/app/src/api/services/panic-service';
 import messaging from '@react-native-firebase/messaging';
-//import ImageModal from '../components/ImageModal';
-
-
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
- 
 
-  const { login } = useAuth();
-
- 
-
-
- 
+  const colors = {
+    background: isDark ? "#121212" : "#ffffff",
+    text: isDark ? "#ffffff" : "#000000",
+    placeholder: isDark ? "#bbbbbb" : "#999999",
+    inputBackground: isDark ? "#1e1e1e" : "#f5f9ff",
+    inputBorder: isDark ? "#333" : "#e1f5fe",
+    buttonBackground: isDark ? "#333" : "#01579b",
+    buttonText: "#ffffff",
+    secondaryText: isDark ? "#cccccc" : "#546e7a",
+    accent: isDark ? "#80d8ff" : "#01579b",
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -51,47 +57,28 @@ export default function LoginScreen() {
 
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response);
-      // Verificar si la respuesta tiene la estructura esperada
-      if (response.data && response.data.token) {
-        // Guardar token y datos de usuario
+
+      if (response.data?.token) {
         await AsyncStorage.setItem('auth-token', response.data.token);
 
-        // Asegurarse de que user existe antes de guardarlo
         if (response.data.user) {
           await AsyncStorage.setItem('user-data', JSON.stringify(response.data.user));
-          console.log("Datos de usuario guardados:", response.data.user);
-        } else {
-          console.warn("No se recibieron datos de usuario");
         }
 
-      const fcmToken = await messaging().getToken();
-    console.log("🔐 Token FCM obtenido:", fcmToken);
-
-
-    await fcmService.saveToken(fcmToken); // ← Aquí se guarda en el backend
-
-
+        const fcmToken = await messaging().getToken();
+        await fcmService.saveToken(fcmToken);
         await login();
-
         router.replace('/');
       } else {
-        console.warn("Respuesta inesperada:", response);
         Alert.alert('Error', 'No se recibió un token válido. Intenta de nuevo.');
       }
     } catch (error: any) {
       let errorMessage = 'Error al iniciar sesión';
-
-      if (error.response && error.response.data) {
-        // Si hay un mensaje de error en la respuesta, úsalo
-        if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        } else if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        }
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (typeof error.response?.data === 'string') {
+        errorMessage = error.response.data;
       }
-
-      // Mostrar mensaje específico si es posible
       Alert.alert('Error al iniciar sesión: ', errorMessage);
     } finally {
       setLoading(false);
@@ -99,127 +86,92 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#01579b" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardContainer}
-      >
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardContainer}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            { <Image
-              source={require('../assets/images/icon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            /> }
-            <Text style={styles.title}>Viryx SOS</Text>
-            <Text style={styles.subtitle}>Seguridad a un toque de distancia</Text>
+            <Image source={require('../assets/images/icon.png')} style={styles.logo} resizeMode="contain" />
+            <Text style={[styles.title, { color: colors.accent }]}>Viryx SOS</Text>
+            <Text style={[styles.subtitle, { color: colors.secondaryText }]}>Seguridad a un toque de distancia</Text>
           </View>
 
           <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={22} color="#01579b" style={styles.inputIcon} />
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}>
+              <Ionicons name="mail-outline" size={22} color={colors.accent} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Correo electrónico"
+                placeholderTextColor={colors.placeholder}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                placeholderTextColor="#999"
                 editable={!loading}
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={22} color="#01579b" style={styles.inputIcon} />
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}>
+              <Ionicons name="lock-closed-outline" size={22} color={colors.accent} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Contraseña"
+                placeholderTextColor={colors.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={secureTextEntry}
-                placeholderTextColor="#999"
                 editable={!loading}
               />
-              <TouchableOpacity
-                onPress={() => setSecureTextEntry(!secureTextEntry)}
-                disabled={loading}
-                style={styles.eyeButton}
-              >
-                <Ionicons
-                  name={secureTextEntry ? "eye-off-outline" : "eye-outline"}
-                  size={22}
-                  color="#01579b"
-                />
+              <TouchableOpacity onPress={() => setSecureTextEntry(!secureTextEntry)} disabled={loading} style={styles.eyeButton}>
+                <Ionicons name={secureTextEntry ? "eye-off-outline" : "eye-outline"} size={22} color={colors.accent} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.linksRow}>
-              <TouchableOpacity
-                onPress={() => router.push('/auth/forgot-password')}
-                disabled={loading}
-              >
-                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+              <TouchableOpacity onPress={() => router.push('/auth/forgot-password')} disabled={loading}>
+                <Text style={[styles.forgotPasswordText, { color: colors.accent }]}>¿Olvidaste tu contraseña?</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setShowPolicyModal(true)}
-                disabled={loading}
-                style={{ marginLeft: 15 }}
-              >
-                <Text style={styles.forgotPasswordText}>Ver políticas</Text>
+              <TouchableOpacity onPress={() => setShowPolicyModal(true)} disabled={loading} style={{ marginLeft: 15 }}>
+                <Text style={[styles.forgotPasswordText, { color: colors.accent }]}>Ver políticas</Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={[styles.loginButton, loading && styles.disabledButton]}
+              style={[styles.loginButton, { backgroundColor: colors.buttonBackground }, loading && styles.disabledButton]}
               onPress={handleLogin}
               disabled={loading}
             >
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <Ionicons name="sync" size={20} color="#ffffff" style={styles.spinIcon} />
-                  <Text style={styles.loginButtonText}>Cargando...</Text>
+                  <Ionicons name="sync" size={20} color={colors.buttonText} style={styles.spinIcon} />
+                  <Text style={[styles.loginButtonText, { color: colors.buttonText }]}>Cargando...</Text>
                 </View>
               ) : (
                 <View style={styles.buttonContent}>
-                  <Ionicons name="log-in-outline" size={20} color="#ffffff" />
-                  <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                  <Ionicons name="log-in-outline" size={20} color={colors.buttonText} />
+                  <Text style={[styles.loginButtonText, { color: colors.buttonText }]}>Iniciar Sesión</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.registerContainer}
-              onPress={() => router.push('/auth/register')}
-              disabled={loading}
-            >
-              <Text style={styles.registerText}>
-                ¿No tienes cuenta? <Text style={styles.registerTextBold}>Regístrate</Text>
+            <TouchableOpacity style={styles.registerContainer} onPress={() => router.push('/auth/register')} disabled={loading}>
+              <Text style={[styles.registerText, { color: colors.secondaryText }]}>
+                ¿No tienes cuenta? <Text style={{ color: colors.accent, fontWeight: 'bold' }}>Regístrate</Text>
               </Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.creditsText}>Powered by SoftKilla.</Text>
+          <Text style={[styles.creditsText, { color: colors.secondaryText }]}>Powered by SoftKilla.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
-      <PolicyModal
-        visible={showPolicyModal}
-        onAccept={() => setShowPolicyModal(false)}
-      />
+      <PolicyModal visible={showPolicyModal} onAccept={() => setShowPolicyModal(false)} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffffff"
-  },
-  keyboardContainer: {
-    flex: 1
-  },
+  container: { flex: 1 },
+  keyboardContainer: { flex: 1 },
   content: {
     flexGrow: 1,
     justifyContent: "center",
@@ -240,11 +192,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#01579b",
     marginBottom: 8
   },
   subtitle: {
-    color: "#546e7a",
     fontSize: 16,
     textAlign: 'center'
   },
@@ -256,10 +206,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 18,
-    backgroundColor: "#f5f9ff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e1f5fe",
     height: 56
   },
   inputIcon: {
@@ -269,25 +217,17 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 56,
-    color: "#37474f",
     fontSize: 16
   },
   eyeButton: {
     padding: 10,
     paddingRight: 15
   },
-  forgotPassword: {
-    alignItems: 'flex-end',
-    marginBottom: 20,
-    marginTop: 4
-  },
   forgotPasswordText: {
     fontSize: 14,
-    color: "#0277bd",
     fontWeight: "500"
   },
   loginButton: {
-    backgroundColor: "#01579b",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
@@ -305,7 +245,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   disabledButton: {
-    backgroundColor: "#90a4ae",
+    opacity: 0.6
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -313,11 +253,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   spinIcon: {
-    marginRight: 8,
-    transform: [{ rotate: '0deg' }],
+    marginRight: 8
   },
   loginButtonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontWeight: "700",
     marginLeft: 8
@@ -327,15 +265,9 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   registerText: {
-    color: "#546e7a",
     fontSize: 15
   },
-  registerTextBold: {
-    color: "#01579b",
-    fontWeight: "bold"
-  },
   creditsText: {
-    color: "#90a4ae",
     fontSize: 12,
     marginTop: 20,
     textAlign: "center"
@@ -346,5 +278,4 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 4
   },
-
 });
