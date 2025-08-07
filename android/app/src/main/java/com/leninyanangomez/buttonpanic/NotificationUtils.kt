@@ -11,7 +11,7 @@ import android.util.Log
 
 
  fun createNotificationChannel(context: Context): String {
-    val channelId = "panic_channel_v2"
+    val channelId = "panic_channel_v4"
     
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val channelName = "Emergencias"
@@ -25,12 +25,8 @@ import android.util.Log
             setShowBadge(true)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             
-            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            val audioAttributes = AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .build()
-            setSound(alarmSound, audioAttributes)
+            
+            setSound(null, null)
             
             enableLights(true)
             lightColor = android.graphics.Color.RED

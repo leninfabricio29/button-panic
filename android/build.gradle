@@ -13,16 +13,20 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        //maven { url("https://plugins.gradle.org/m2/") } // ✅ ESTO ES LO CORRECTO
-         maven {
-         url("$rootDir/../node_modules/expo-modules-core/android/maven")
-    }
+        maven { url("$rootDir/../node_modules/expo-modules-core/android/maven") }
+        // Mapbox Maven repository
+        maven {
+            url("https://api.mapbox.com/downloads/v2/releases/maven")
+            credentials {
+                username = "mapbox"
+                password = project.properties["MAPBOX_DOWNLOADS_TOKEN"] ?: ""
+            }
+        }
     }
     dependencies {
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-
         classpath 'com.google.gms:google-services:4.3.15'
     }
 }
@@ -43,5 +47,14 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
+        
+        // Mapbox Maven repository - MUST BE IN allprojects
+        maven {
+            url("https://api.mapbox.com/downloads/v2/releases/maven")
+            credentials {
+                username = "mapbox"
+                password = project.properties["MAPBOX_DOWNLOADS_TOKEN"] ?: ""
+            }
+        }
     }
 }

@@ -244,7 +244,7 @@ const getUserDisplayName = () => {
       <StatusBar barStyle="light-content" backgroundColor="#01579b" />
 
       <AppHeader
-        title="Viryx SOS"
+        title="V- SOS"
         showBack={false}
         rightIcon="settings-outline"
         onRightPress={() => console.log("Settings")}

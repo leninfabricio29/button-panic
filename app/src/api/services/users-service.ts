@@ -37,7 +37,7 @@ export const usersService = {
     }
 
       const response = await api.post(
-        '/entity/subscribe',
+        '/entity/petition',
         { entityId, userId }, // body
         {
           headers: {

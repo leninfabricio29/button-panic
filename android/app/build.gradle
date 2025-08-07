@@ -115,8 +115,10 @@ buildTypes {
     }
     release {
         signingConfig signingConfigs.release
-        shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
-        minifyEnabled enableProguardInReleaseBuilds
+        //shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
+        //minifyEnabled enableProguardInReleaseBuilds
+        shrinkResources true
+        minifyEnabled true
         proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
     }
@@ -156,7 +158,11 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     //Se agrega esto luego podemos borrar
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    //implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    implementation 'com.mapbox.maps:android:10.15.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+
 
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";

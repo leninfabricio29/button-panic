@@ -163,7 +163,11 @@ useEffect(() => {
           entityId,
           userId: user._id,
         });
-        console.log("✅ Suscrito:", response.data.message);
+        Alert.alert("Petición enviada ✅",
+          "El administrador de la entidad validará tu ingreso"
+        )
+
+        console.log(response)
       } else {
         await usersService.unsuscribeEntity({ entityId, userId: user._id });
       }

@@ -102,7 +102,6 @@ private fun showCustomEmergencyNotification(lat: String, lon: String ,senderName
     val channelId = createOrUpdateNotificationChannel(this)
     
     // Crear notificación de emergencia
-    val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
     
     val title = remoteMessage.notification?.title ?: "🚨 ¡ALERTA DE EMERGENCIA!"
     val body = remoteMessage.notification?.body ?: 
@@ -138,7 +137,7 @@ private fun showCustomEmergencyNotification(lat: String, lon: String ,senderName
     
     // Crear o actualizar canal de notificación en tiempo de ejecución
     private fun createOrUpdateNotificationChannel(context: Context): String {
-        val channelId = "panic_channel_v2"
+        val channelId = "panic_channel_v4"
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelName = "Emergencias"
@@ -156,7 +155,6 @@ private fun showCustomEmergencyNotification(lat: String, lon: String ,senderName
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .build()
-                setSound(alarmSound, audioAttributes)
                 
                 enableLights(true)
                 lightColor = android.graphics.Color.RED

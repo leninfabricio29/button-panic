@@ -36,7 +36,6 @@ export default function RegisterScreen() {
   
     try {
       const response = await authService.register({ name, ci, email, phone });
-        console.log('Registro response:', response.data);
       if (response.data.user) {
         Alert.alert(
           'Registro exitoso',
