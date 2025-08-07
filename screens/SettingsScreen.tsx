@@ -21,23 +21,46 @@ const SettingsScreen = () => {
   const { logout } = useAuth(); // nuevo hook
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      Alert.alert(
+        "Cerrar sesión",
+        "¿Estás seguro de que quieres cerrar sesión?",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Cerrar sesión",
+            style: "destructive",
+            onPress: async () => {
+              await logout();
+              // Redirect to login or auth screen after logout
+              router.replace("/auth/login");
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Alert.alert("Error", "No se pudo cerrar la sesión");
+    }
   };
 
   const settings = [
     {
-      icon: "person-circle-outline",
+      icon: "person-circle-outline" as const,
       label: "Editar perfil",
-      onPress: () => router.push("settings/edit-profile"),
+      onPress: () => router.push("/settings/edit-profile"),
     },
     {
-      icon: "lock-closed-outline",
+      icon: "lock-closed-outline" as const,
       label: "Cambiar contraseña",
-      onPress: () => router.push("settings/change-password"),
+      onPress: () => router.push("/settings/change-password"),
     },
 
     {
-      icon: "log-out-outline",
+      icon: "log-out-outline" as const,
       label: "Cerrar sesión",
       onPress: () => handleLogout(),
     },

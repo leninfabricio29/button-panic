@@ -195,10 +195,7 @@ export default function ChangePasswordScreen() {
             showsVerticalScrollIndicator={true}
           >
             <View style={styles.container}>
-              <Image
-                style={styles.imagePassword}
-                source={require("../assets/images/password.png")}
-              />
+             
 
               <Text style={styles.label}>Contraseña actual</Text>
               <TextInput

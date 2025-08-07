@@ -21,5 +21,9 @@ export const authService = {
 
   updatePassword: (data: { email: string; currentPassword: string; newPassword: string }) => {
     return api.put('/auth/update-password', data);
+  },
+
+  resetPassword: (data: { email: string }) => {
+    return api.post('/auth/reset-password', data);
   }
 };

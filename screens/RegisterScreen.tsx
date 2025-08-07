@@ -44,12 +44,11 @@ export default function RegisterScreen() {
             { text: 'Aceptar', onPress: () => router.replace('/auth/login') } // ✅ Redirigimos al login
           ]
         );
-      } else {
-        Alert.alert('Error', 'No se pudo completar el registro. Inténtalo más tarde.');
+      } else if (response.data.error) {
+        Alert.alert('Error', response.data.error + '. Intenta con otros datos.');
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Hubo un problema al registrarte. Verifica tus datos.');
+      console.error('Error durante el registro:', error);
     } finally {
       setLoading(false);
     }

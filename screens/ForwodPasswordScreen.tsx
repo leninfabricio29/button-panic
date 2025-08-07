@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { notifyService } from '@/app/src/api/services/notification-service';
+import { authService } from '@/app/src/api/services/auth-service';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -29,25 +29,32 @@ export default function ForgotPasswordScreen() {
       Alert.alert('Atención', 'Debes aceptar las condiciones antes de continuar');
       return;
     }
-  
+
     if (!email.includes('@')) {
       Alert.alert('Error', 'Ingresa un correo válido.');
       return;
     }
-  
+
     try {
       setLoading(true);
-      await notifyService.sendPetitioPassword(email);
-      Alert.alert('Solicitud enviada', 'Un administrador se pondrá en contacto contigo.');
-      setEmail('');
-      setAccepted(false);
+      const response = await authService.resetPassword({ email });
+      console.log('Response from resetPassword:', response);
+      if (response?.data?.error) {
+        Alert.alert('Error', response.data.error);
+        console.error('Error al solicitar recuperación:', response.data.error);
+      } else {
+        Alert.alert('Éxito', 'Revisa tu bandeja de entrada, no olvides revisar la carpeta de spam.');
+        setEmail('');
+        setAccepted(false);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Hubo un problema al enviar tu solicitud.');
+      console.error('Error al solicitar recuperación:', error);
+      Alert.alert('Error', 'Ocurrió un error al solicitar la recuperación. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
   };
-  
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,9 +70,7 @@ export default function ForgotPasswordScreen() {
             </View>
             <Text style={styles.title}>¿Olvidaste tu contraseña?</Text>
             <Text style={styles.subtitle}>
-              Si estás aquí, es porque has olvidado tu contraseña.
-              Un administrador se contactará contigo para informarte la nueva contraseña. 
-              No olvides cambiarla luego de iniciar sesión.
+              Ingresa tu correo electrónico y te enviaremos una contraseña temporal, no olvides cambiarla luego de iniciar sesión.
             </Text>
           </View>
 
