@@ -112,7 +112,7 @@ export default function LoginScreen() {
               style={styles.logo}
               resizeMode="contain"
             /> }
-            <Text style={styles.title}>Viryx SOS</Text>
+            <Text style={styles.title}>V-SOS</Text>
             <Text style={styles.subtitle}>Seguridad a un toque de distancia</Text>
           </View>
 

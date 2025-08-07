@@ -19,7 +19,7 @@ export const usersService = {
     return response.data; // aquí viene un solo usuario
   },
 
-  updateUser: async (id: string, data: { email?: string; phone?: string; avatar?: string }) => {
+  updateUser: async (id: string, data: { name?: string; email?: string; phone?: string; avatar?: string }) => {
     try {
       const response = await api.put(`/users/${id}`, data);
       console.log('Usuario actualizado:', response.data);

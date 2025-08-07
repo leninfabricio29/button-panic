@@ -57,6 +57,7 @@ export default function UserAccountScreen() {
   const [avatar, setAvatar] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false); // Use boolean for picker visibility
   // Definir avatarOptions aquí, no afuera del componente
@@ -71,6 +72,7 @@ export default function UserAccountScreen() {
         if (user?._id) {
           const fullUser: UserProfile = await usersService.getUserById(user._id);
           setUserProfile(fullUser);
+          setName(fullUser.name || '');
           setPhone(fullUser.phone || '');
           setEmail(fullUser.email || '')
           setAvatar(fullUser.avatar || '')
@@ -119,12 +121,13 @@ export default function UserAccountScreen() {
   // Effect to track changes
   useEffect(() => {
     if (userProfile) {
+      const nameChanged = name !== userProfile.name;
       const phoneChanged = phone !== (userProfile.phone || '');
       const emailChanged = email !== (userProfile.email || '');
       const avatarChanged = selectedAvatarUrl !== (userProfile.photo_profile_url || `https://api.dicebear.com/9.x/micah/png?seed=${userProfile._id.substring(0, 5)}`); // Compare with initial loaded avatar URL
-      setHasChanges(phoneChanged || avatarChanged || emailChanged);
+      setHasChanges(nameChanged || phoneChanged || avatarChanged || emailChanged);
     }
-  }, [phone, email, selectedAvatarUrl, userProfile]);
+  }, [name, phone, email, selectedAvatarUrl, userProfile]);
 
   const handleAvatarSelect = (avatarItem: { id: string; url: string }) => {
     setSelectedAvatarUrl(avatarItem.url);
@@ -139,6 +142,10 @@ export default function UserAccountScreen() {
     setEmail(text);
   };
 
+  const handleNameChange = (text: string) => {
+    setName(text);
+  };
+
    // asegúrate de importar useAuth
 
 
@@ -151,6 +158,7 @@ const handleSaveChanges = async () => {
     setSaving(true);
 
     await usersService.updateUser(userProfile._id, {
+      name,
       email,
       phone,
       avatar: selectedAvatarUrl ?? '',
@@ -159,6 +167,7 @@ const handleSaveChanges = async () => {
     // 🔄 Datos actualizados del usuario
     const updatedUser = {
       ...user,
+      name,
       email,
       phone,
       avatar: selectedAvatarUrl ?? '',
@@ -228,16 +237,16 @@ const handleSaveChanges = async () => {
         {/* Mensaje de advertencia */}
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color="#3498db" />
-          <Text style={styles.infoText}>Solo puedes editar tu avatar, email y número de teléfono</Text>
+          <Text style={styles.infoText}>Puedes editar tu nombre, avatar, email y número de teléfono</Text>
         </View>
 
         <View style={styles.profileCard}>
           {/* Avatar section with edit icon */}
           <View style={styles.avatarContainer}>
             <Image
-  source={selectedAvatarUrl ? { uri: selectedAvatarUrl } : null}
-  style={styles.avatar}
-/>
+              source={selectedAvatarUrl ? { uri: selectedAvatarUrl } : require('@/assets/images/icon.png')}
+              style={styles.avatar}
+            />
 
             <TouchableOpacity
               style={styles.editIcon}
@@ -271,10 +280,20 @@ const handleSaveChanges = async () => {
 
           {/* Profile Data Section */}
           <View style={styles.section}>
-            {/* Name (Read-only) */}
+            {/* Name (Editable) */}
             <View style={styles.fieldContainer}>
               <Text style={styles.label}>Nombre</Text>
-              <Text style={styles.staticText}>{userProfile.name}</Text>
+              <View style={styles.editableField}>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={handleNameChange}
+                  keyboardType="default"
+                  placeholderTextColor="#999"
+                  autoCapitalize="words"
+                />
+                <Ionicons name="pencil" size={20} color="#32d6a6" style={styles.inputIcon} />
+              </View>
             </View>
 
             {/* CI (Read-only) */}
