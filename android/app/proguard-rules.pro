@@ -15,6 +15,17 @@
 }
 
 ############################
+# Optimizaciones adicionales
+############################
+-optimizationpasses 5
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontpreverify
+-verbose
+
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/allocation/variable
+
+############################
 # react-native-reanimated
 ############################
 -keep class com.swmansion.reanimated.** { *; }

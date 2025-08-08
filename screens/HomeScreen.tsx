@@ -12,7 +12,6 @@ import {
   Vibration,
   Animated,
   Easing,
-  Modal,
   Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,13 +37,6 @@ export default function HomeScreen() {
   const [adsImages, setAdsImages] = useState<string[]>([]);
   const router = useRouter();
 
-  const pubImages = [
-  require("../assets/images/softkilla_pub.png"),
-];
-
-  const [showAdModal, setShowAdModal] = useState(false);
-  const [randomAdImage, setRandomAdImage] = useState<string | null>(null);
-
 
  const getCurrentLocation = async (): Promise<string[] | null> => {
   try {
@@ -56,7 +48,6 @@ export default function HomeScreen() {
 
     const location = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Highest,
-      timeout: 30000, // más tiempo para obtener ubicación precisa
     });
 
     const { latitude, longitude } = location.coords;
@@ -68,28 +59,7 @@ export default function HomeScreen() {
   }
 };
 
-
-
-const showRandomAd = () => {
-  if (pubImages.length === 0) return;
-
-  const randomIndex = Math.floor(Math.random() * pubImages.length);
-  const image = pubImages[randomIndex];
-  setRandomAdImage(image);
-  setShowAdModal(true);
-};
-
-
-  useEffect(() => {
-  const interval = setInterval(() => {
-    showRandomAd();
-  }, 80000); // cada 60 segundos1
-
-  return () => clearInterval(interval);
-}, [adsImages]);
-
-
-  // Función para obtener nombre de usuario para mostrar
+// Función para obtener nombre de usuario para mostrar
 const getUserDisplayName = () => {
   if (user && user.name) {
     const parts = user.name.trim().split(" ");
@@ -100,8 +70,6 @@ const getUserDisplayName = () => {
   }
   return "Usuario";
 };
-
-
 
   useEffect(() => {
   const fetchAds = async () => {
@@ -410,40 +378,6 @@ const getUserDisplayName = () => {
         </View>
       </ScrollView>
 
-      <Modal
-  visible={showAdModal}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setShowAdModal(false)}
->
-  <View style={{
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "center",
-    alignItems: "center"
-  }}>
-    <View style={{
-      backgroundColor: "gray",
-      padding:2,
-      //borderRadius: 5,
-      alignItems: "center",
-      maxWidth: "100%",
-    }}>
-      {randomAdImage && (
-        <Image
-    source={randomAdImage}  // ✅ NO uses { uri: ... }
-    style={{ width: 300, height: 350, borderRadius: 5 }}
-    resizeMode="cover"
-  />
-      )}
-      
-    </View>
-    <TouchableOpacity onPress={() => setShowAdModal(false)}>
-        <Text style={styles.buttonCancelar} >Cerrar</Text>
-      </TouchableOpacity>
-  </View>
-</Modal>
-
     </SafeAreaView>
   );
 }
@@ -452,15 +386,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  buttonCancelar:{
-    backgroundColor: "#e53935",
-    color: "#ffff",
-    padding: 10,
-    borderRadius: 2,
-    marginTop: 10
-
-
   },
 
   scrollContent: {

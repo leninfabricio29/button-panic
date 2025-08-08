@@ -93,7 +93,13 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 3
         versionName "1.2.0"
+        // Reducir tamaño con splits
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
     }
+    
+
     signingConfigs {
     debug {
         storeFile file('debug.keystore')
@@ -115,12 +121,17 @@ buildTypes {
     }
     release {
         signingConfig signingConfigs.release
-        //shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
-        //minifyEnabled enableProguardInReleaseBuilds
         shrinkResources true
         minifyEnabled true
         proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
+        crunchPngs true
+        // Optimizaciones adicionales
+        zipAlignEnabled true
+        debuggable false
+        jniDebuggable false
+        renderscriptDebuggable false
+        pseudoLocalesEnabled false
+        
     }
 }
 
