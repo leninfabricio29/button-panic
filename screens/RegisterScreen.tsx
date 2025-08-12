@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { authService } from '../app/src/api/services/auth-service';
+import messaging from '@react-native-firebase/messaging';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -31,17 +32,25 @@ export default function RegisterScreen() {
       Alert.alert('Campos incompletos', 'Por favor llena todos los campos.');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
-      const response = await authService.register({ name, ci, email, phone });
+      let fcmToken = undefined;
+      try {
+        fcmToken = await messaging().getToken();
+      } catch (notifError) {
+        console.warn('No se pudo obtener el token FCM:', notifError);
+      }
+
+      console.log('FCM Token:', fcmToken);
+      const response = await authService.register({ name, ci, email, phone, fcmToken });
       if (response.data.user) {
         Alert.alert(
           'Registro exitoso',
           'Un administrador validará tu cuenta y te proporcionará tus credenciales. 🚀',
           [
-            { text: 'Aceptar', onPress: () => router.replace('/auth/login') } // ✅ Redirigimos al login
+            { text: 'Aceptar', onPress: () => router.replace('/auth/login') }
           ]
         );
       } else if (response.data.error) {

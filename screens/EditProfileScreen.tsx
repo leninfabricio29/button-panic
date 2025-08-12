@@ -244,7 +244,7 @@ const handleSaveChanges = async () => {
           {/* Avatar section with edit icon */}
           <View style={styles.avatarContainer}>
             <Image
-              source={selectedAvatarUrl ? { uri: selectedAvatarUrl } : require('@/assets/images/icon.png')}
+              source={{ uri: selectedAvatarUrl ?? userProfile.avatar }}
               style={styles.avatar}
             />
 

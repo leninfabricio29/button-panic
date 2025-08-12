@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Linking,
 } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { Ionicons } from "@expo/vector-icons";
@@ -63,7 +64,7 @@ const SettingsScreen = () => {
       icon: "log-out-outline" as const,
       label: "Cerrar sesión",
       onPress: () => handleLogout(),
-    },
+    }
   ];
 
   return (
@@ -84,8 +85,33 @@ const SettingsScreen = () => {
             />
             <Text style={styles.label}>{item.label}</Text>
           </TouchableOpacity>
+
         ))}
+
+         <TouchableOpacity
+        style={styles.card1}
+        onPress={() => {
+            Alert.alert(
+            "Eliminar cuenta",
+            "La opción para eliminar la cuenta está disponible solo con la opción 2 de la página a la que será redirigido, siga los pasos y su cuenta será eliminada. ¿Desea continuar?",
+            [
+              { text: "Cancelar", style: "cancel" },
+              {
+              text: "IR",
+              style: "destructive",
+              onPress: () => Linking.openURL("https://botondepanico.viryx.net/delete-account"),
+              },
+            ]
+            );
+          }}
+          >
+        <Text style={[{ color: "#ffffffff", fontWeight: "bold" }]}>
+          Eliminar cuenta
+        </Text>
+        </TouchableOpacity>
       </ScrollView>
+
+     
     </SafeAreaView>
   );
 };
@@ -122,6 +148,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
   },
+
+  card1: {
+    backgroundColor: "#fc5555ff",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#df2e2eff",
+    width: "80%",
+    height: "10%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    marginRight: 1,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+  },
+
   icon: {
     marginBottom: 10,
   },

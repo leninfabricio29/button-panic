@@ -51,7 +51,7 @@ export default function LoginScreen() {
 
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response);
+      //console.log('Login response:', response);
       // Verificar si la respuesta tiene la estructura esperada
       if (response.data && response.data.token) {
         // Guardar token y datos de usuario
@@ -60,13 +60,12 @@ export default function LoginScreen() {
         // Asegurarse de que user existe antes de guardarlo
         if (response.data.user) {
           await AsyncStorage.setItem('user-data', JSON.stringify(response.data.user));
-          console.log("Datos de usuario guardados:", response.data.user);
+          //console.log("Datos de usuario guardados:", response.data.user);
         } else {
           console.warn("No se recibieron datos de usuario");
         }
 
       const fcmToken = await messaging().getToken();
-    console.log("🔐 Token FCM obtenido:", fcmToken);
 
 
     await fcmService.saveToken(fcmToken); // ← Aquí se guarda en el backend
@@ -107,11 +106,7 @@ export default function LoginScreen() {
       >
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            { <Image
-              source={require('../assets/images/icon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            /> }
+           
             <Text style={styles.title}>V-SOS</Text>
             <Text style={styles.subtitle}>Seguridad a un toque de distancia</Text>
           </View>

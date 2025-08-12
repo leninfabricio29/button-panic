@@ -15,7 +15,7 @@ export const authService = {
    * @param data { ci: string, name: string, phone: string, email: string }
    * @returns datos del nuevo usuario
    */
-  register: (data: { ci: string; name: string; phone: string; email: string }) => {
+  register: (data: { ci: string; name: string; phone: string; email: string; fcmToken?: string }) => {
     return api.post('/users/register', data);
   },
 

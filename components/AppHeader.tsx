@@ -9,7 +9,6 @@ import {
   ViewStyle,
   TextStyle,
   SafeAreaView,
-  useColorScheme,
 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,8 +34,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   iconColor = '#f9fafb',
 }) => {
   const navigation = useNavigation();
-  const colorScheme = useColorScheme(); // Detecta modo oscuro o claro
-  const isDarkMode = colorScheme === 'dark';
 
   return (
     <SafeAreaView >
@@ -66,7 +63,7 @@ export default AppHeader;
 const styles = StyleSheet.create({
   header: {
     padding: 12,
-    backgroundColor: isDarkMode ? '#0a0a0a' : '#01579b',
+    backgroundColor:  '#01579b',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

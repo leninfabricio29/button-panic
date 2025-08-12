@@ -39,7 +39,18 @@ export default function ForgotPasswordScreen() {
       setLoading(true);
       const response = await authService.resetPassword({ email });
       console.log('Response from resetPassword:', response);
-      if (response?.data?.error) {
+
+      // El backend siempre responde 200, pero puede traer un mensaje de error en message
+      if (response?.data?.message) {
+        // Si el mensaje indica que el email no está registrado, mostrar como error
+        if (response.data.message.toLowerCase().includes('no está registrado')) {
+          Alert.alert('Error', response.data.message);
+        } else {
+          Alert.alert('Información', response.data.message);
+          setEmail('');
+          setAccepted(false);
+        }
+      } else if (response?.data?.error) {
         Alert.alert('Error', response.data.error);
         console.error('Error al solicitar recuperación:', response.data.error);
       } else {

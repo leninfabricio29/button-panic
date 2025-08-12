@@ -62,7 +62,7 @@ const UsersListScreen = () => {
       const loggedUser = loggedUserData ? JSON.parse(loggedUserData) : null;
 
       const filtered = allUsers.filter(
-        (user) => user._id !== loggedUser?._id
+        (user:any) => user._id !== loggedUser?._id
       );
 
       setUsers(filtered);
@@ -217,7 +217,7 @@ return names.length >= 2
                 color={isFocusedInput ? "#007AFF" : "#aaa"}
               />
               <TextInput
-                placeholder="Buscar por nombre o teléfono"
+                placeholder="Nombre o teléfono"
                 value={searchQuery}
                 onChangeText={handleSearch}
                 style={[
