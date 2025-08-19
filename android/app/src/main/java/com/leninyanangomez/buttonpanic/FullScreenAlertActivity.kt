@@ -92,7 +92,7 @@ class FullScreenAlertActivity : AppCompatActivity() {
         val senderText = TextView(this).apply {
             setText("¡Emergencia!\n$senderName\nnecesita tu ayuda")
             setTextColor(Color.parseColor("#D32F2F")) // Rojo más profesional
-            textSize = 22f
+            textSize = 32f
             textAlignment = View.TEXT_ALIGNMENT_CENTER
             setPadding(0, 0, 0, 10)
             typeface = customFont
@@ -116,7 +116,7 @@ class FullScreenAlertActivity : AppCompatActivity() {
         val mapContainer = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            dpToPx(400) // Altura fija más generosa
+            dpToPx(500) // Altura fija más generosa
             )
             setBackgroundColor(Color.WHITE)
             setPadding(10, 10, 10, 10)

@@ -105,11 +105,15 @@ export default function LoginScreen() {
         style={styles.keyboardContainer}
       >
         <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.header}>
-           
+            <View style={styles.header}>
+            <Image
+              source={{ uri: 'https://res.cloudinary.com/dlhh5olhn/image/upload/v1755578644/splash_icon_rwscpk.png' }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>V-SOS</Text>
             <Text style={styles.subtitle}>Seguridad a un toque de distancia</Text>
-          </View>
+            </View>
 
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
